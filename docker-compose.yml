@@ -36,6 +36,8 @@ services:
     build: ./backend
     container_name: school_backend
     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    environment:
+      - PYTHONPATH=/app
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
@@ -56,7 +58,9 @@ services:
   celery:
     build: ./backend
     container_name: school_celery
-    command: celery -A config worker -l info
+    command: python -m celery -A config worker -l info
+    environment:
+      - PYTHONPATH=/app
     volumes:
       - media_volume:/app/media
     env_file:
@@ -70,7 +74,9 @@ services:
   celery-beat:
     build: ./backend
     container_name: school_celery_beat
-    command: celery -A config beat -l info
+    command: python -m celery -A config beat -l info
+    environment:
+      - PYTHONPATH=/app
     volumes:
       - media_volume:/app/media
     env_file:
