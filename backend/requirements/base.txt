@@ -1,0 +1,50 @@
+# Core Django packages
+Django==4.2.9
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+django-filter==23.5
+djangorestframework-simplejwt==5.3.1
+
+# Database
+psycopg2-binary==2.9.9
+dj-database-url==2.1.0
+
+# API Documentation
+drf-spectacular==0.27.0
+
+# Celery & Redis
+celery==5.3.4
+redis==4.6.0
+django-redis==5.4.0
+
+# Django Channels for WebSocket
+channels==4.0.0
+channels-redis==4.1.0
+
+# File handling
+Pillow==10.1.0
+
+# Excel/CSV handling
+openpyxl==3.1.2
+pandas==2.1.4
+
+# PDF generation
+reportlab==4.0.7
+
+# Email
+django-anymail==10.2
+
+# SMS (Twilio)
+twilio==8.11.1
+
+# Payment gateways
+razorpay==1.4.1
+
+# Utilities
+python-decouple==3.8
+python-dateutil==2.8.2
+pytz==2023.3.post1
+
+# Validation
+phonenumbers==8.13.27
+email-validator==2.1.0.post1
