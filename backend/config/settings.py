@@ -101,7 +101,7 @@ else:
             'NAME': config('POSTGRES_DB', default='school_mgmt_db'),
             'USER': config('POSTGRES_USER', default='postgres'),
             'PASSWORD': config('POSTGRES_PASSWORD', default='postgres'),
-            'HOST': config('POSTGRES_HOST', default='localhost'),
+            'HOST': config('POSTGRES_HOST', default='postgres'),
             'PORT': config('POSTGRES_PORT', default='5432'),
             'CONN_MAX_AGE': 600,
         }
