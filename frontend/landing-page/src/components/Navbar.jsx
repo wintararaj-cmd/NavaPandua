@@ -18,7 +18,7 @@ const Navbar = () => {
           <Link to="impact" smooth={true} duration={500} className="nav-link">Our Impact</Link>
           <a href="/donate" className="btn btn-primary" style={{ padding: '0.6rem 1.5rem' }}>Donate</a>
           <a 
-            href={`${import.meta.env.VITE_ADMIN_PORTAL_URL || 'http://localhost:5173'}/login`} 
+            href={`${import.meta.env.VITE_ADMIN_PORTAL_URL || (import.meta.env.PROD ? 'https://admin.navadaya.in' : 'http://localhost:5173')}/login`} 
             className="btn btn-outline" 
             style={{ 
               padding: '0.6rem 1.5rem', 
