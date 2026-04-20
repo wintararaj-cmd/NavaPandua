@@ -130,75 +130,58 @@ Instead of manual Nginx configuration, you can use Coolify's UI:
 
 ---
 
-## 5. Nginx Reverse Proxy & SSL
+## 5. Coolify Deployment Guide (Step-by-Step)
 
-Use Nginx on the host to handle HTTPS and proxy to Docker.
+Now that Coolify is installed and your code is on GitHub, follow these steps to deploy the entire stack.
 
-### Install Nginx & Certbot
-```bash
-sudo apt install nginx python3-certbot-nginx -y
-```
+### Step 1: Connect GitHub to Coolify
+1.  Open your Coolify dashboard (`http://your_server_ip:3000`).
+2.  Go to **Sources** -> **Add New Source** -> **GitHub App**.
+3.  Follow the prompts to install the Coolify GitHub App on your `wintararaj-cmd` account and grant access to the `NavaPandua` repository.
 
-### Configure Nginx
-Create: `sudo nano /etc/nginx/sites-available/school_mgmt`
+### Step 2: Create a New Project
+1.  Go to **Projects** -> **Add New Project**.
+2.  Name it `School Management System`.
+3.  Add a new **Environment** (e.g., `Production`).
 
-```nginx
-server {
-    server_name yourdomain.com;
+### Step 3: Add the Resource (Docker Compose)
+1.  Inside your environment, click **+ New Resource**.
+2.  Select **Public Repository** or **Private Repository** (GitHub).
+3.  Choose your repository: `wintararaj-cmd/NavaPandua`.
+4.  Coolify will detect the `docker-compose.yml` file. Select **Docker Compose** as the build pack.
 
-    location / {
-        # Proxy to Frontend (React)
-        proxy_pass http://localhost:5173; 
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-    }
+### Step 4: Configure Environment Variables
+1.  In the resource settings, go to the **Environment Variables** tab.
+2.  Copy the contents of your `.env` files into here. 
+3.  **Required Variables:**
+    - `DEBUG=False`
+    - `SECRET_KEY=your-long-random-string`
+    - `DATABASE_URL=postgres://postgres:password@school_postgres:5432/school_mgmt_db` (Coolify handles internal networking)
 
-    location /api/ {
-        # Proxy to Django Backend
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
+### Step 5: Configure Domains
+1.  In the **General** tab of your resource, look for the **Domains** section.
+2.  Add your domains:
+    - Admin Portal: `admin.yourdomain.com`
+    - Landing Page: `yourdomain.com`
+    - API (if separate): `api.yourdomain.com`
+3.  Coolify will automatically generate SSL certificates via Let's Encrypt.
 
-    location /static/ {
-        alias /path/to/SchoolMgmtShankar/backend/staticfiles/;
-    }
+### Step 6: Persistent Storage
+Coolify will respect the `volumes` defined in your `docker-compose.yml`. 
+- Ensure `postgres_data`, `static_volume`, and `media_volume` are mapped correctly so your data survives redeployments.
 
-    location /media/ {
-        alias /path/to/SchoolMgmtShankar/backend/media/;
-    }
-}
-```
-
-### Enable SSL
-```bash
-sudo ln -s /etc/nginx/sites-available/school_mgmt /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl restart nginx
-sudo certbot --nginx -d yourdomain.com
-```
+### Step 7: Deploy
+1.  Click **Deploy**.
+2.  Monitor the logs in the **Deployments** tab.
+3.  Once finished, your site will be live at the domains you specified!
 
 ---
 
-## 6. Post-Deployment Commands
+## 6. Troubleshooting Coolify
 
-1. **Database Migrations**:
-   ```bash
-   docker exec -it school_backend python manage.py migrate
-   ```
-2. **Collect Static Files**:
-   ```bash
-   docker exec -it school_backend python manage.py collectstatic --noinput
-   ```
-3. **Admin User**:
-   ```bash
-   docker exec -it school_backend python manage.py createsuperuser
-   ```
-
----
-
-## 7. Monitoring
-- Check logs: `docker compose logs -f`
-- Monitor resources: `docker stats`
+- **Logs:** If a service fails, check the "Logs" tab for that specific container inside Coolify.
+- **Port Conflicts:** Ensure no other service (like manual Nginx) is using port 80 or 443 on the host. 
+- **Database Migrations:** You can run migrations from the Coolify terminal for the `backend` container:
+  ```bash
+  python manage.py migrate
+  ```
