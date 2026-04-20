@@ -6,11 +6,11 @@ services:
     image: postgres:15-alpine
     container_name: school_postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-school_mgmt_db}
-      POSTGRES_USER: ${POSTGRES_USER:-school_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-school123}
+      POSTGRES_DB: school_mgmt_db
+      POSTGRES_USER: school_user
+      POSTGRES_PASSWORD: school123
     volumes:
-      - postgres_data_v2:/var/lib/postgresql/data
+      - postgres_data_v3:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U school_user"]
       interval: 10s
@@ -34,6 +34,7 @@ services:
     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
     environment:
       - PYTHONPATH=/app
+      - DATABASE_URL=postgresql://school_user:school123@postgres:5432/school_mgmt_db
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
@@ -57,6 +58,7 @@ services:
     command: python -m celery -A config worker -l info
     environment:
       - PYTHONPATH=/app
+      - DATABASE_URL=postgresql://school_user:school123@postgres:5432/school_mgmt_db
     volumes:
       - media_volume:/app/media
     env_file:
@@ -73,6 +75,7 @@ services:
     command: python -m celery -A config beat -l info
     environment:
       - PYTHONPATH=/app
+      - DATABASE_URL=postgresql://school_user:school123@postgres:5432/school_mgmt_db
     volumes:
       - media_volume:/app/media
     env_file:
@@ -97,7 +100,7 @@ services:
   #     - backend
 
 volumes:
-  postgres_data_v2:
+  postgres_data_v3:
   static_volume:
   media_volume:
 
