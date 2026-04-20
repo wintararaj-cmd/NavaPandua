@@ -3,7 +3,7 @@
  */
 
 export const config = {
-    apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
+    apiUrl: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://api.navadaya.in/api/v1' : 'http://localhost:8000/api/v1'),
     appName: 'School Management System',
     appVersion: '1.0.0',
 
