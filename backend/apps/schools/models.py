@@ -22,7 +22,8 @@ class School(BaseModel, ContactInfo):
     
     INSTITUTION_TYPES = [
         ('K12_SCHOOL', 'K-12 School'),
-        ('TRAINING_CENTER', 'Training/Computer Center'),
+        ('TRAINING_CENTER', 'Computer/Training Center'),
+        ('INSTITUTE', 'Institute'),
         ('COLLEGE', 'College/University'),
     ]
     institution_type = models.CharField(

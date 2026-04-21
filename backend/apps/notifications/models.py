@@ -29,3 +29,28 @@ class Notification(BaseModel):
 
     def __str__(self):
         return f"{self.title} - {self.recipient.email}"
+
+class Announcement(BaseModel):
+    TARGET_CHOICES = [
+        ('ALL', 'All'),
+        ('TEACHERS', 'Teachers Only'),
+        ('STUDENTS', 'Students Only'),
+        ('CLASS', 'Specific Class'),
+    ]
+
+    school = models.ForeignKey('schools.School', on_delete=models.CASCADE, related_name='announcements')
+    title = models.CharField(max_length=255)
+    content = models.TextField()
+    target_audience = models.CharField(max_length=20, choices=TARGET_CHOICES, default='ALL')
+    target_class = models.ForeignKey('classes.Class', on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    is_active = models.BooleanField(default=True)
+    expiry_date = models.DateField(null=True, blank=True)
+    attachment = models.FileField(upload_to='announcements/', null=True, blank=True)
+
+    class Meta:
+        db_table = 'announcements'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title

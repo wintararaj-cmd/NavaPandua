@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Building2, MapPin, School as SchoolIcon, BookOpen, GraduationCap, Monitor } from 'lucide-react';
 import { organizationService, type Organization } from '../../services/organizationService';
 
 interface SchoolModalProps {
@@ -15,8 +15,9 @@ export default function SchoolModal({ isOpen, onClose, onSave, initialData }: Sc
         organization: '',
         name: '',
         code: '',
-        board: 'CBSE',
-        medium: 'English', // default
+        institution_type: 'K12_SCHOOL',
+        board: '',
+        medium: 'English',
         phone: '',
         email: '',
         address_line1: '',
@@ -36,7 +37,8 @@ export default function SchoolModal({ isOpen, onClose, onSave, initialData }: Sc
                     organization: initialData.organization || '',
                     name: initialData.name || '',
                     code: initialData.code || '',
-                    board: initialData.board || 'CBSE',
+                    institution_type: initialData.institution_type || 'K12_SCHOOL',
+                    board: initialData.board || '',
                     medium: initialData.medium || 'English',
                     phone: initialData.phone || '',
                     email: initialData.email || '',
@@ -51,7 +53,8 @@ export default function SchoolModal({ isOpen, onClose, onSave, initialData }: Sc
                     organization: '',
                     name: '',
                     code: '',
-                    board: 'CBSE',
+                    institution_type: 'K12_SCHOOL',
+                    board: '',
                     medium: 'English',
                     phone: '',
                     email: '',
@@ -68,7 +71,6 @@ export default function SchoolModal({ isOpen, onClose, onSave, initialData }: Sc
     const fetchOrganizations = async () => {
         try {
             const data = await organizationService.getOrganizations();
-            // Handle pagination if needed, or assume data.results or data array
             setOrganizations(Array.isArray(data) ? data : data.results || []);
         } catch (error) {
             console.error('Failed to fetch organizations', error);
@@ -90,24 +92,36 @@ export default function SchoolModal({ isOpen, onClose, onSave, initialData }: Sc
 
     if (!isOpen) return null;
 
+    const institutionTypes = [
+        { id: 'K12_SCHOOL', label: 'K-12 School', icon: GraduationCap },
+        { id: 'TRAINING_CENTER', label: 'Computer/Training Center', icon: Monitor },
+        { id: 'INSTITUTE', label: 'Institute', icon: BookOpen },
+        { id: 'COLLEGE', label: 'College/University', icon: SchoolIcon }
+    ];
+
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-between items-center p-4 border-b">
-                    <h2 className="text-lg font-semibold text-gray-900">
-                        {initialData ? 'Edit School' : 'New School'}
-                    </h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+                <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                            <Building2 className="w-5 h-5" />
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-900">
+                            {initialData ? 'Edit Institution' : 'Register New Institution'}
+                        </h2>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-400">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto">
                     {/* Organization Selection */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Organization</label>
+                        <label className="block text-xs font-black text-gray-400 uppercase tracking-wider mb-2">Parent Organization *</label>
                         <select
-                            className="input w-full mt-1"
+                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-medium"
                             value={formData.organization}
                             onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
                             required
@@ -121,123 +135,152 @@ export default function SchoolModal({ isOpen, onClose, onSave, initialData }: Sc
                         </select>
                     </div>
 
+                    {/* Institution Type Card Selector */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">School Name</label>
-                        <input
-                            type="text"
-                            required
-                            className="input w-full mt-1"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        />
+                        <label className="block text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Institution Type *</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            {institutionTypes.map((type) => (
+                                <button
+                                    key={type.id}
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, institution_type: type.id })}
+                                    className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                                        formData.institution_type === type.id
+                                            ? 'border-indigo-600 bg-indigo-50/50 text-indigo-700'
+                                            : 'border-gray-100 bg-white text-gray-500 hover:border-gray-200'
+                                    }`}
+                                >
+                                    <type.icon className={`w-5 h-5 ${formData.institution_type === type.id ? 'text-indigo-600' : 'text-gray-400'}`} />
+                                    <span className="text-xs font-bold leading-tight">{type.label}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">School Code</label>
+                            <label className="block text-xs font-black text-gray-400 uppercase tracking-wider mb-1">Institution Name *</label>
                             <input
                                 type="text"
                                 required
-                                className="input w-full mt-1"
-                                value={formData.code}
-                                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                                placeholder="e.g., Navadaya Computer Academy"
+                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Board</label>
-                            <input
-                                type="text"
-                                placeholder="e.g. CBSE, ICSE"
-                                className="input w-full mt-1"
-                                value={formData.board}
-                                onChange={(e) => setFormData({ ...formData, board: e.target.value })}
-                            />
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-wider mb-1">Code *</label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="e.g., NCA01"
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all uppercase"
+                                    value={formData.code}
+                                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-black text-gray-400 uppercase tracking-wider mb-1">Board/Affiliation</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g., CBSE, DTE"
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                    value={formData.board}
+                                    onChange={(e) => setFormData({ ...formData, board: e.target.value })}
+                                />
+                            </div>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Phone</label>
+                            <label className="block text-xs font-black text-gray-400 uppercase tracking-wider mb-1">Official Phone *</label>
                             <input
                                 type="tel"
                                 required
-                                className="input w-full mt-1"
+                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Email</label>
+                            <label className="block text-xs font-black text-gray-400 uppercase tracking-wider mb-1">Official Email *</label>
                             <input
                                 type="email"
                                 required
-                                className="input w-full mt-1"
+                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                                 value={formData.email}
                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             />
                         </div>
                     </div>
 
-                    <div className="space-y-3 pt-2 border-t mt-2">
-                        <h3 className="text-sm font-medium text-gray-900">Address</h3>
-                        <div>
+                    <div className="pt-6 border-t border-gray-100">
+                        <div className="flex items-center gap-2 mb-4">
+                            <MapPin className="w-4 h-4 text-indigo-600" />
+                            <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Address Details</h3>
+                        </div>
+                        <div className="space-y-4">
                             <input
                                 type="text"
-                                placeholder="Address Line 1"
-                                className="input w-full"
+                                placeholder="Street Address, Area"
+                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                                 value={formData.address_line1}
                                 onChange={(e) => setFormData({ ...formData, address_line1: e.target.value })}
                             />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <input
-                                type="text"
-                                placeholder="City"
-                                className="input w-full"
-                                value={formData.city}
-                                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                            />
-                            <input
-                                type="text"
-                                placeholder="State"
-                                className="input w-full"
-                                value={formData.state}
-                                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <input
-                                type="text"
-                                placeholder="POSTAL CODE"
-                                className="input w-full"
-                                value={formData.postal_code}
-                                onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Country"
-                                className="input w-full"
-                                value={formData.country}
-                                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                            />
+                            <div className="grid grid-cols-2 gap-4">
+                                <input
+                                    type="text"
+                                    placeholder="City"
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                    value={formData.city}
+                                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="State"
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                    value={formData.state}
+                                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <input
+                                    type="text"
+                                    placeholder="ZIP / Postal Code"
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-mono"
+                                    value={formData.postal_code}
+                                    onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Country"
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                    value={formData.country}
+                                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                                />
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-4 border-t">
+                    <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="btn btn-secondary"
+                            className="px-6 py-2.5 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-xl transition-all"
                             disabled={loading}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="btn btn-primary"
+                            className="px-8 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-lg hover:bg-indigo-700 transition-all active:scale-95 disabled:opacity-50"
                             disabled={loading}
                         >
-                            {loading ? 'Saving...' : 'Save School'}
+                            {loading ? 'Processing...' : initialData ? 'Update Institution' : 'Register Institution'}
                         </button>
                     </div>
                 </form>

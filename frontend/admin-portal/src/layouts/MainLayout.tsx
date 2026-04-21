@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { authStore } from '../stores/authStore';
+import { useInstitutionTerms } from '../hooks/useInstitutionTerms';
 import SchoolSwitcher from '../components/SchoolSwitcher';
 import toast from 'react-hot-toast';
 
@@ -13,6 +14,7 @@ export default function MainLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const { user, logout } = authStore();
     const navigate = useNavigate();
+    const terms = useInstitutionTerms();
 
     const handleLogout = () => {
         logout();
@@ -20,19 +22,15 @@ export default function MainLayout() {
         navigate('/login');
     };
 
-    const currentSchoolId = typeof user?.school === 'string' ? user?.school : user?.school?.id;
-    const currentSchool = user?.allowed_schools?.find((s: any) => s.id === currentSchoolId);
-    const isTrainingCenter = currentSchool?.institution_type === 'TRAINING_CENTER';
-
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
         { icon: Building2, label: 'Organizations', path: '/organizations' },
         { icon: School, label: 'Schools', path: '/schools' },
         { icon: UserPlus, label: 'Admissions', path: '/admissions' },
-        { icon: GraduationCap, label: 'Students', path: '/students' },
+        { icon: GraduationCap, label: terms.studentsLabel, path: '/students' },
         { icon: Users, label: 'Teachers', path: '/teachers' },
-        { icon: BookOpen, label: isTrainingCenter ? 'Courses' : 'Classes', path: '/classes' },
-        { icon: FileText, label: isTrainingCenter ? 'Modules' : 'Subjects', path: '/subjects' },
+        { icon: BookOpen, label: terms.classesLabel, path: '/classes' },
+        { icon: FileText, label: terms.subjectsLabel, path: '/subjects' },
         { icon: Calendar, label: 'Timetable', path: '/timetable' },
         { icon: UserCircle, label: 'Attendance', path: '/attendance' },
         { icon: ClipboardList, label: 'Assignments', path: '/assignments' },

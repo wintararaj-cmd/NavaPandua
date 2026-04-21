@@ -27,16 +27,22 @@ export interface Class {
     name: string;
     code: string;
     description?: string;
+    class_type: 'CLASS' | 'COURSE';
+    duration_weeks?: number | null;
+    course_fee?: number | null;
     sections?: Section[];
     created_at?: string;
     updated_at?: string;
 }
 
 export interface ClassFormData {
-    school: string;
+    school?: string;
     name: string;
     code: string;
     description?: string;
+    class_type?: 'CLASS' | 'COURSE';
+    duration_weeks?: number | null;
+    course_fee?: number | null;
 }
 
 export interface SectionFormData {
@@ -76,6 +82,18 @@ export const classService = {
 
     deleteClass: async (id: string) => {
         const response = await api.delete(`/classes/${id}/`);
+        return response.data;
+    },
+
+    /** Fetch only traditional school classes (Grades/Standards) */
+    getOnlyClasses: async (params?: any) => {
+        const response = await api.get('/classes/', { params: { ...params, class_type: 'CLASS' } });
+        return response.data;
+    },
+
+    /** Fetch only courses */
+    getOnlyCourses: async (params?: any) => {
+        const response = await api.get('/classes/', { params: { ...params, class_type: 'COURSE' } });
         return response.data;
     },
 

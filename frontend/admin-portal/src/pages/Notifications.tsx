@@ -1,192 +1,215 @@
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-    Bell, CheckCircle, Info, AlertTriangle, XCircle, 
-    Trash2, Check, ExternalLink, Calendar, Filter, 
-    MoreVertical, Search, MousePointerClick
+    Plus, Search, Bell, Send, Trash2, Edit2, Filter, 
+    Calendar, Users, Info, ChevronRight, Speaker, Megaphone
 } from 'lucide-react';
-import { notificationService, type Notification } from '../services/notificationService';
+import { notificationService, type Announcement, type AnnouncementFormData } from '../services/notificationService';
+import AnnouncementModal from '../components/notifications/AnnouncementModal';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
-
-function TypeIcon({ type }: { type: string }) {
-    switch (type) {
-        case 'SUCCESS': return <CheckCircle className="w-5 h-5 text-emerald-500" />;
-        case 'WARNING': return <AlertTriangle className="w-5 h-5 text-amber-500" />;
-        case 'ERROR': return <XCircle className="w-5 h-5 text-red-500" />;
-        case 'ALERT': return <Bell className="w-5 h-5 text-indigo-500" />;
-        default: return <Info className="w-5 h-5 text-blue-500" />;
-    }
-}
-
-function TypeBg({ type }: { type: string }) {
-    switch (type) {
-        case 'SUCCESS': return 'bg-emerald-50 border-emerald-100';
-        case 'WARNING': return 'bg-amber-50 border-amber-100';
-        case 'ERROR': return 'bg-red-50 border-red-100';
-        case 'ALERT': return 'bg-indigo-50 border-indigo-100';
-        default: return 'bg-blue-50 border-blue-100';
-    }
-}
 
 export default function Notifications() {
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState<'ALL' | 'UNREAD'>('ALL');
-    const navigate = useNavigate();
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | undefined>(undefined);
+    const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
-        fetchNotifications();
-    }, [filter]);
+        fetchAnnouncements();
+    }, []);
 
-    const fetchNotifications = async () => {
+    const fetchAnnouncements = async () => {
         try {
             setLoading(true);
-            const params = filter === 'UNREAD' ? { is_read: false } : {};
-            const res = await notificationService.getNotifications(params);
-            setNotifications(res.results || res);
-        } catch {
-            toast.error('Failed to load notifications');
+            const data = await notificationService.getAnnouncements({ search: searchQuery });
+            setAnnouncements(data.results || []);
+        } catch (error) {
+            toast.error('Failed to fetch announcements');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleMarkAsRead = async (id: string) => {
-        try {
-            await notificationService.markAsRead(id);
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-        } catch { toast.error('Error updating notification'); }
+    const handleCreate = () => {
+        setSelectedAnnouncement(undefined);
+        setIsModalOpen(true);
     };
 
-    const handleMarkAllRead = async () => {
-        try {
-            await notificationService.markAllAsRead();
-            setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-            toast.success('Marked all as read');
-        } catch { toast.error('Error marking all as read'); }
+    const handleEdit = (announcement: Announcement) => {
+        setSelectedAnnouncement(announcement);
+        setIsModalOpen(true);
     };
 
     const handleDelete = async (id: string) => {
+        if (window.confirm('Are you sure you want to delete this announcement?')) {
+            try {
+                await notificationService.deleteAnnouncement(id);
+                toast.success('Announcement deleted');
+                fetchAnnouncements();
+            } catch (error) {
+                toast.error('Failed to delete');
+            }
+        }
+    };
+
+    const handleSubmit = async (data: AnnouncementFormData) => {
         try {
-            await notificationService.deleteNotification(id);
-            setNotifications(prev => prev.filter(n => n.id !== id));
-            toast.success('Removed');
-        } catch { toast.error('Failed to delete'); }
+            setActionLoading(true);
+            if (selectedAnnouncement) {
+                await notificationService.updateAnnouncement(selectedAnnouncement.id, data);
+                toast.success('Announcement updated');
+            } else {
+                await notificationService.createAnnouncement(data);
+                toast.success('Announcement posted');
+            }
+            setIsModalOpen(false);
+            fetchAnnouncements();
+        } catch (error) {
+            toast.error('Failed to save announcement');
+        } finally {
+            setActionLoading(false);
+        }
     };
-
-    const handleNotificationClick = (n: Notification) => {
-        if (!n.is_read) handleMarkAsRead(n.id);
-        if (n.link) navigate(n.link);
-    };
-
-    const unreadCount = notifications.filter(n => !n.is_read).length;
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
-            <div className="flex flex-wrap justify-between items-center gap-4">
+        <div className="space-y-8 animate-in fade-in duration-700">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
-                    <p className="text-gray-600 mt-1">Stay updated with system activities</p>
+                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">Notices & Announcements</h1>
+                    <p className="text-sm font-bold text-gray-400 mt-1">Broadcast official information across the institution.</p>
                 </div>
-                <div className="flex gap-2">
-                    <button 
-                        onClick={handleMarkAllRead}
-                        disabled={unreadCount === 0}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-indigo-600 bg-white border border-indigo-100 rounded-xl hover:bg-indigo-50 transition-all disabled:opacity-50"
-                    >
-                        <Check className="w-4 h-4" /> Mark All Read
-                    </button>
-                </div>
+                <button
+                    onClick={handleCreate}
+                    className="flex items-center gap-2 px-6 py-3.5 bg-indigo-600 text-white font-black text-sm rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-95"
+                >
+                    <Plus className="w-5 h-5" />
+                    New Announcement
+                </button>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                    <div className="flex bg-gray-50 p-1 rounded-xl gap-1">
-                        <button 
-                            onClick={() => setFilter('ALL')}
-                            className={`px-4 py-1.5 text-xs font-black rounded-lg transition-all ${filter === 'ALL' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            ALL
-                        </button>
-                        <button 
-                            onClick={() => setFilter('UNREAD')}
-                            className={`px-4 py-1.5 text-xs font-black rounded-lg transition-all ${filter === 'UNREAD' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                        >
-                            UNREAD {unreadCount > 0 && `(${unreadCount})`}
-                        </button>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                {/* Stats / Sidebar */}
+                <div className="space-y-6">
+                    <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Total Posted</span>
+                            <span className="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg text-xs font-black">{announcements.length}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Active Now</span>
+                            <span className="bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg text-xs font-black">
+                                {announcements.filter(a => a.is_active).length}
+                            </span>
+                        </div>
                     </div>
-                    <div className="text-xs text-gray-400 font-medium">
-                        Showing {notifications.length} notifications
+
+                    <div className="bg-indigo-600 p-6 rounded-3xl text-white shadow-xl shadow-indigo-200 relative overflow-hidden group">
+                        <Megaphone className="absolute -bottom-2 -right-2 w-20 h-20 text-white/10 -rotate-12 group-hover:rotate-0 transition-transform duration-500" />
+                        <h4 className="text-lg font-black leading-tight mb-2">Communication is key.</h4>
+                        <p className="text-xs text-indigo-100 font-medium">Keep your students and teachers updated with real-time official notices.</p>
                     </div>
                 </div>
 
-                <div className="divide-y divide-gray-50">
+                {/* Feed */}
+                <div className="lg:col-span-3 space-y-6">
+                    <div className="bg-white p-2 rounded-2xl border border-gray-100 shadow-sm flex gap-2">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input 
+                                type="text" 
+                                placeholder="Search notices by title or content..." 
+                                className="w-full pl-12 pr-4 py-3 bg-gray-50 border-transparent rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all font-medium"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && fetchAnnouncements()}
+                            />
+                        </div>
+                        <button 
+                            onClick={fetchAnnouncements}
+                            className="bg-gray-100 text-gray-600 px-6 py-3 rounded-xl text-xs font-black hover:bg-gray-200 transition-colors uppercase tracking-widest"
+                        >
+                            Filter
+                        </button>
+                    </div>
+
                     {loading ? (
-                        [...Array(5)].map((_, i) => (
-                            <div key={i} className="p-6 flex gap-4 animate-pulse">
-                                <div className="w-10 h-10 bg-gray-100 rounded-full shrink-0" />
-                                <div className="flex-1 space-y-2">
-                                    <div className="h-4 bg-gray-100 rounded w-1/4" />
-                                    <div className="h-3 bg-gray-100 rounded w-full" />
-                                </div>
-                            </div>
-                        ))
-                    ) : notifications.length === 0 ? (
-                        <div className="py-24 text-center">
-                            <Bell className="w-16 h-16 text-gray-100 mx-auto mb-4" />
-                            <h3 className="text-lg font-bold text-gray-900">All caught up!</h3>
-                            <p className="text-gray-400">No {filter === 'UNREAD' ? 'unread' : ''} notifications at the moment.</p>
+                        <div className="py-20 text-center">
+                            <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                            <p className="text-gray-400 font-bold text-sm">Synchronizing notices...</p>
+                        </div>
+                    ) : announcements.length === 0 ? (
+                        <div className="bg-white py-24 text-center rounded-[32px] border border-dashed border-gray-200">
+                            <Speaker className="w-16 h-16 text-gray-100 mx-auto mb-4" />
+                            <h3 className="text-xl font-black text-gray-900 mb-1">Silence is golden?</h3>
+                            <p className="text-gray-400 font-medium max-w-xs mx-auto text-sm">No announcements found. Click "New Announcement" to start broadcasting.</p>
                         </div>
                     ) : (
-                        notifications.map(n => (
-                            <div 
-                                key={n.id} 
-                                className={`p-5 flex gap-4 transition-all group relative border-l-4 ${n.is_read ? 'border-transparent opacity-75' : 'border-indigo-600 bg-indigo-50/30'}`}
-                            >
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border uppercase font-black text-[10px] ${TypeBg({type: n.notification_type})}`}>
-                                    <TypeIcon type={n.notification_type} />
-                                </div>
-                                
-                                <div className="flex-1 min-w-0 pr-10">
-                                    <div className="flex items-center gap-2 mb-0.5">
-                                        <h4 className={`text-sm font-bold truncate ${n.is_read ? 'text-gray-700' : 'text-gray-900'}`}>{n.title}</h4>
-                                        {!n.is_read && <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full" />}
-                                    </div>
-                                    <p className="text-sm text-gray-500 line-clamp-2 mb-2">{n.message}</p>
-                                    <div className="flex items-center gap-3 text-xs text-gray-400 font-medium">
-                                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(n.created_at).toLocaleString()}</span>
-                                        {n.link && (
-                                            <button onClick={() => navigate(n.link)} className="text-indigo-600 hover:underline flex items-center gap-1 font-bold">
-                                                <MousePointerClick className="w-3 h-3" /> View Details
+                        <div className="space-y-4">
+                            {announcements.map((announcement) => (
+                                <div key={announcement.id} className="bg-white border border-gray-100 rounded-[32px] p-6 hover:shadow-xl hover:shadow-indigo-50/50 transition-all group">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center font-black">
+                                                {announcement.target_audience === 'ALL' && <Users className="w-6 h-6" />}
+                                                {announcement.target_audience === 'TEACHERS' && <Info className="w-6 h-6" />}
+                                                {announcement.target_audience === 'STUDENTS' && <GraduationCap className="w-6 h-6" />}
+                                                {announcement.target_audience === 'CLASS' && <Edit2 className="w-6 h-6" />}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                                                        announcement.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400'
+                                                    }`}>
+                                                        {announcement.is_active ? 'Active' : 'Expired'}
+                                                    </span>
+                                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-0.5 rounded-full">
+                                                        To: {announcement.target_audience === 'CLASS' ? announcement.target_class_name : announcement.target_audience}
+                                                    </span>
+                                                </div>
+                                                <h3 className="text-lg font-black text-gray-900 group-hover:text-indigo-600 transition-colors leading-none">{announcement.title}</h3>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => handleEdit(announcement)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors">
+                                                <Edit2 className="w-4 h-4" />
                                             </button>
-                                        )}
+                                            <button onClick={() => handleDelete(announcement.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-sm text-gray-500 font-medium leading-relaxed mb-6 whitespace-pre-wrap line-clamp-3">
+                                        {announcement.content}
+                                    </p>
+
+                                    <div className="pt-6 border-t border-gray-50 flex items-center justify-between text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                                        <div className="flex items-center gap-2">
+                                            <Calendar className="w-3.5 h-3.5" />
+                                            Posted on {new Date(announcement.created_at).toLocaleDateString()}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 font-black">
+                                                {announcement.created_by_name?.charAt(0) || 'A'}
+                                            </div>
+                                            By {announcement.created_by_name || 'Administrator'}
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {!n.is_read && (
-                                        <button 
-                                            onClick={() => handleMarkAsRead(n.id)}
-                                            title="Mark as read"
-                                            className="p-2 bg-white text-emerald-600 shadow-sm border border-emerald-50 rounded-lg hover:bg-emerald-50 transition"
-                                        >
-                                            <Check className="w-4 h-4" />
-                                        </button>
-                                    )}
-                                    <button 
-                                        onClick={() => handleDelete(n.id)}
-                                        title="Delete"
-                                        className="p-2 bg-white text-red-500 shadow-sm border border-red-50 rounded-lg hover:bg-red-50 transition"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        ))
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>
+
+            <AnnouncementModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSubmit={handleSubmit}
+                announcement={selectedAnnouncement}
+                isLoading={actionLoading}
+            />
         </div>
     );
 }

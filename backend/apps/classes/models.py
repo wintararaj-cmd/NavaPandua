@@ -8,9 +8,31 @@ class Class(BaseModel):
         on_delete=models.CASCADE,
         related_name='classes'
     )
-    name = models.CharField(max_length=50)  # e.g., "Class 10"
-    code = models.CharField(max_length=20)  # e.g., "STD10"
+    name = models.CharField(max_length=50)  # e.g., "Class 10" or "Python Programming"
+    code = models.CharField(max_length=20)  # e.g., "STD10" or "PY101"
     description = models.TextField(blank=True)
+
+    CLASS_TYPE_CHOICES = [
+        ('CLASS', 'Class'),    # Traditional school class (Grade/Standard)
+        ('COURSE', 'Course'),  # Course offered by training center, institute, or school
+    ]
+    class_type = models.CharField(
+        max_length=10,
+        choices=CLASS_TYPE_CHOICES,
+        default='CLASS',
+        help_text='Whether this is a traditional class (Grade) or a course'
+    )
+
+    # Course-specific fields (only relevant when class_type=COURSE)
+    duration_weeks = models.IntegerField(
+        null=True, blank=True,
+        help_text='Duration in weeks (for courses only)'
+    )
+    course_fee = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        null=True, blank=True,
+        help_text='Base course fee (for courses only)'
+    )
     
     class Meta:
         db_table = 'classes'
