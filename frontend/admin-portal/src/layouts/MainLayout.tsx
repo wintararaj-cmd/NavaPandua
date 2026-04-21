@@ -2,7 +2,7 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Building2, School, Users, UserCircle,
     GraduationCap, BookOpen, Calendar, DollarSign, BarChart3,
-    Settings, LogOut, Menu, X, UserPlus, FileText, Video, ClipboardList
+    Settings, LogOut, Menu, X, UserPlus, FileText, Video, ClipboardList, Bell
 } from 'lucide-react';
 import { useState } from 'react';
 import { authStore } from '../stores/authStore';
@@ -41,6 +41,7 @@ export default function MainLayout() {
         { icon: BookOpen, label: 'Library', path: '/library' },
         { icon: Video, label: 'Live Classes', path: '/live-classes' },
         { icon: BarChart3, label: 'Reports', path: '/reports' },
+        { icon: Bell, label: 'Notifications', path: '/notifications' },
         { icon: Settings, label: 'Settings', path: '/settings' },
     ];
 
@@ -114,6 +115,12 @@ export default function MainLayout() {
                         </button>
 
                         <div className="flex items-center gap-6">
+                            <Link to="/notifications" className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-all">
+                                <Bell className="w-6 h-6" />
+                                {user?.unread_notifications_count > 0 && (
+                                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                                )}
+                            </Link>
                             <SchoolSwitcher />
                             <span className="text-sm text-gray-600">
                                 Welcome back, <strong>{user?.first_name}</strong>!

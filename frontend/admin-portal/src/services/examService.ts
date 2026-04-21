@@ -92,5 +92,13 @@ export const examService = {
         // Implement bulk save if backend supports it, otherwise loop
         const promises = results.map(res => api.post('/exams/results/', res));
         return Promise.all(promises);
+    },
+
+    downloadReportCard: async (examId: string, studentId: string) => {
+        const response = await api.get(`/exams/${examId}/report-card/`, {
+            params: { student_id: studentId },
+            responseType: 'blob'
+        });
+        return response.data;
     }
 };
