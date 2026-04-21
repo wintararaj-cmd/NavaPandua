@@ -24,6 +24,17 @@ export const libraryService = {
         const response = await api.get('/library/borrowings/', { params });
         return response.data;
     },
+    createBook: async (data: any) => {
+        const response = await api.post('/library/books/', data);
+        return response.data;
+    },
+    updateBook: async (id: string, data: any) => {
+        const response = await api.patch(`/library/books/${id}/`, data);
+        return response.data;
+    },
+    deleteBook: async (id: string) => {
+        await api.delete(`/library/books/${id}/`);
+    },
     issueBook: async (data: any) => {
         const response = await api.post('/library/borrowings/', data);
         return response.data;
@@ -42,5 +53,12 @@ export const liveClassService = {
     createLiveClass: async (data: any) => {
         const response = await api.post('/live-classes/', data);
         return response.data;
+    },
+    updateLiveClass: async (id: string, data: any) => {
+        const response = await api.patch(`/live-classes/${id}/`, data);
+        return response.data;
+    },
+    deleteLiveClass: async (id: string) => {
+        await api.delete(`/live-classes/${id}/`);
     }
 };
