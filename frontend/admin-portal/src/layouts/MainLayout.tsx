@@ -2,7 +2,7 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Building2, School, Users, UserCircle,
     GraduationCap, BookOpen, Calendar, DollarSign, BarChart3,
-    Settings, LogOut, Menu, X, UserPlus, FileText, Video
+    Settings, LogOut, Menu, X, UserPlus, FileText, Video, ClipboardList
 } from 'lucide-react';
 import { useState } from 'react';
 import { authStore } from '../stores/authStore';
@@ -35,6 +35,7 @@ export default function MainLayout() {
         { icon: FileText, label: isTrainingCenter ? 'Modules' : 'Subjects', path: '/subjects' },
         { icon: Calendar, label: 'Timetable', path: '/timetable' },
         { icon: UserCircle, label: 'Attendance', path: '/attendance' },
+        { icon: ClipboardList, label: 'Assignments', path: '/assignments' },
         { icon: DollarSign, label: 'Fees', path: '/fees' },
         { icon: FileText, label: 'Exams', path: '/exams' },
         { icon: BookOpen, label: 'Library', path: '/library' },

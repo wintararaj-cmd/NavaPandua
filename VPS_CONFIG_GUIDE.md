@@ -1,187 +1,323 @@
-# VPS Configuration Guide for School Management System
-
-This guide outlines the steps to configure a Linux VPS (Ubuntu 22.04/24.04 LTS recommended) for deploying your School Management System, including the Django backend, React frontend, PostgreSQL, Redis, and Celery.
-
-## 1. System Requirements & Recommendations
-
-Given your stack (Django + Postgres + Redis + Celery + React), we recommend:
-- **CPU**: 2+ Cores
-- **RAM**: 4GB Minimum (8GB recommended for production)
-- **Storage**: 40GB+ SSD
-- **OS**: Ubuntu 22.04 LTS or 24.04 LTS
+# Coolify Deployment Guide — Navadaya School Management System
+> **Fresh Install Reference** | VPS: `5.189.155.6` | Repo: `wintararaj-cmd/NavaPandua`
 
 ---
 
-## 2. Security Best Practices (Crucial)
+## Architecture Overview
 
-Protect your server from brute-force attacks and unauthorized access.
-
-### A. Use SSH Keys (Instead of Passwords)
-Generate a key on your **local machine** (if you haven't):
-```bash
-ssh-keygen -t ed25519 -C "your_email@example.com"
-ssh-copy-id shankar@your_server_ip
 ```
-
-### B. Disable Password Authentication
-Once you've verified you can login with your SSH key, disable passwords.
-```bash
-sudo nano /etc/ssh/sshd_config
-```
-Find and change these lines:
-- `PasswordAuthentication no`
-- `PermitRootLogin no` (Optional but recommended)
-
-**Restart SSH:** `sudo systemctl restart ssh`
-
-### C. Install & Configure Fail2Ban
-Fail2Ban automatically bans IPs that show malicious behavior.
-
-```bash
-sudo apt install fail2ban -y
-
-# Configure SSH protection
-sudo bash -c 'cat > /etc/fail2ban/jail.local <<EOF
-[sshd]
-enabled = true
-port = ssh
-filter = sshd
-logpath = /var/log/auth.log
-maxretry = 3
-findtime = 600
-bantime = 3600
-EOF'
-
-sudo systemctl restart fail2ban
+navadaya.in          → Landing Page  (LandingPage — Nixpacks static)
+admin.navadaya.in    → Admin Portal  (admin — Nixpacks Node preview)
+api.navadaya.in      → Django API    (Main — Docker Compose)
+                           ├── backend     (Gunicorn :8000)
+                           ├── postgres    (PostgreSQL :5432)
+                           ├── redis       (Redis :6379)
+                           ├── celery      (worker)
+                           └── celery-beat (scheduler)
 ```
 
 ---
 
-## 3. Initial Server Hardening
+## Phase 1 — Fresh VPS Setup
 
-Connect to your VPS: `ssh root@your_server_ip`
-
-### Update System
+### 1.1 Connect & Update
 ```bash
+ssh root@5.189.155.6
 apt update && apt upgrade -y
+apt install -y ufw
 ```
 
-### Create a Non-Root User
+### 1.2 Firewall
 ```bash
-adduser shankar
-usermod -aG sudo shankar
-# Switch to new user
-su - shankar
+ufw allow OpenSSH
+ufw allow 80/tcp
+ufw allow 443/tcp
+ufw allow 3000/tcp   # Coolify dashboard (can lock down after setup)
+ufw enable
 ```
 
-### Setup Firewall (UFW)
+### 1.3 Swap File (Recommended for stability)
 ```bash
-sudo ufw allow OpenSSH
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw enable
+fallocate -l 4G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+free -h   # verify
 ```
 
 ---
 
-## 4. Swap File Configuration
+## Phase 2 — Install Coolify
 
-Adding a swap file is highly recommended for stability, even with 8GB RAM.
-
-```bash
-# Create a 4GB swap file (adjust size as needed, e.g., 8G)
-sudo fallocate -l 4G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-
-# Make it persistent across reboots
-echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-
-# Verify
-free -h
-```
-
----
-
-## 3. Install Coolify
-
-Coolify is an all-in-one PaaS that will manage your Docker containers, databases, and SSL automatically.
-
-### One-line Installation
 ```bash
 curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
 ```
 
-### Accessing Coolify
-Once the installation is complete, you can access the dashboard at:
-`http://your_server_ip:3000`
+- Wait ~2 minutes for installation to complete.
+- Access dashboard at: **`http://5.189.155.6:3000`**
+- Register your admin account on first visit.
 
 ---
 
-## 4. Deploying with Coolify
+## Phase 3 — Connect GitHub
 
-Instead of manual Nginx configuration, you can use Coolify's UI:
-
-1.  **Connect your Repository**: Link your GitHub/GitLab account.
-2.  **Add a Project**: Create a new project for "School Management System".
-3.  **Environment Variables**: Add your `.env` variables directly in the Coolify UI.
-4.  **Docker Compose**: Coolify supports deploying directly from your `docker-compose.yml` file.
+1. In Coolify sidebar → **Sources** → **Add New Source** → **GitHub App**
+2. Follow the OAuth flow to install the Coolify GitHub App on `wintararaj-cmd`
+3. Grant access to the **`NavaPandua`** repository
+4. Save. You should see `wintararaj-cmd` listed under Sources.
 
 ---
 
-## 5. Coolify Deployment Guide (Step-by-Step)
+## Phase 4 — Create Project
 
-Now that Coolify is installed and your code is on GitHub, follow these steps to deploy the entire stack.
-
-### Step 1: Connect GitHub to Coolify
-1.  Open your Coolify dashboard (`http://your_server_ip:3000`).
-2.  Go to **Sources** -> **Add New Source** -> **GitHub App**.
-3.  Follow the prompts to install the Coolify GitHub App on your `wintararaj-cmd` account and grant access to the `NavaPandua` repository.
-
-### Step 2: Create a New Project
-1.  Go to **Projects** -> **Add New Project**.
-2.  Name it `School Management System`.
-3.  Add a new **Environment** (e.g., `Production`).
-
-### Step 3: Add the Resource (Docker Compose)
-1.  Inside your environment, click **+ New Resource**.
-2.  Select **Public Repository** or **Private Repository** (GitHub).
-3.  Choose your repository: `wintararaj-cmd/NavaPandua`.
-4.  Coolify will detect the `docker-compose.yml` file. Select **Docker Compose** as the build pack.
-
-### Step 4: Configure Environment Variables
-1.  In the resource settings, go to the **Environment Variables** tab.
-2.  Copy the contents of your `.env` files into here. 
-3.  **Required Variables:**
-    - `DEBUG=False`
-    - `SECRET_KEY=your-long-random-string`
-    - `DATABASE_URL=postgres://postgres:password@school_postgres:5432/school_mgmt_db` (Coolify handles internal networking)
-
-### Step 5: Configure Domains
-1.  In the **General** tab of your resource, look for the **Domains** section.
-2.  Add your domains:
-    - Admin Portal: `admin.yourdomain.com`
-    - Landing Page: `yourdomain.com`
-    - API (if separate): `api.yourdomain.com`
-3.  Coolify will automatically generate SSL certificates via Let's Encrypt.
-
-### Step 6: Persistent Storage
-Coolify will respect the `volumes` defined in your `docker-compose.yml`. 
-- Ensure `postgres_data`, `static_volume`, and `media_volume` are mapped correctly so your data survives redeployments.
-
-### Step 7: Deploy
-1.  Click **Deploy**.
-2.  Monitor the logs in the **Deployments** tab.
-3.  Once finished, your site will be live at the domains you specified!
+1. Sidebar → **Projects** → **+ Add**
+2. Name: `Navadaya`
+3. Click into it → **+ Add Environment** → Name: `production`
+4. Click into `production`
 
 ---
 
-## 6. Troubleshooting Coolify
+## Phase 5 — Service 1: Backend (Docker Compose)
 
-- **Logs:** If a service fails, check the "Logs" tab for that specific container inside Coolify.
-- **Port Conflicts:** Ensure no other service (like manual Nginx) is using port 80 or 443 on the host. 
-- **Database Migrations:** You can run migrations from the Coolify terminal for the `backend` container:
-  ```bash
-  python manage.py migrate
-  ```
+This deploys Django API, PostgreSQL, Redis, and Celery via `docker-compose.yml`.
+
+### 5.1 Add Resource
+1. Click **+ New Resource**
+2. Select **Private Repository (GitHub App)**
+3. Repository: `wintararaj-cmd/NavaPandua`
+4. Branch: `main`
+5. Build Pack: **Docker Compose**
+6. Docker Compose Location: `/docker-compose.yml`
+7. Name: `Main`
+8. Click **Save**
+
+### 5.2 Configure Domains
+In the **General** tab → **Domains** section:
+
+| Field | Value |
+|---|---|
+| Domains for backend | `https://api.navadaya.in` |
+| Domains for celery | *(leave empty)* |
+| Domains for celery-beat | *(leave empty)* |
+
+Click **Save**.
+
+### 5.3 Environment Variables
+Go to **Environment Variables** tab. Add these exactly:
+
+```env
+DEBUG=False
+SECRET_KEY=euw1YBOD-4xDP2ny2zvDqYsADg3VYbZMFMdnZg3wLLxNW1GNgFc_HK2iybKmLI6p3fo
+ALLOWED_HOSTS=navadaya.in,api.navadaya.in,admin.navadaya.in,localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=https://navadaya.in,https://admin.navadaya.in
+CSRF_TRUSTED_ORIGINS=https://navadaya.in,https://admin.navadaya.in
+DATABASE_URL=postgresql://school_user:school123@postgres:5432/school_mgmt_db
+POSTGRES_DB=school_mgmt_db
+POSTGRES_USER=school_user
+POSTGRES_PASSWORD=school123
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+REDIS_URL=redis://redis:6379/0
+CELERY_BROKER_URL=redis://redis:6379/1
+JWT_ACCESS_TOKEN_LIFETIME=60
+JWT_REFRESH_TOKEN_LIFETIME=1440
+MAX_UPLOAD_SIZE=5242880
+DEFAULT_PAGE_SIZE=20
+EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+```
+
+> **IMPORTANT:** `POSTGRES_USER` must be `school_user` (not `postgres`) — this matches the `docker-compose.yml` postgres service definition exactly.
+
+Click **Save**.
+
+### 5.4 Deploy
+Click **Deploy**. Monitor the **Deployments** tab logs.
+
+**Expected outcome:** Status → `Running (healthy)` (green dot) within ~3–5 minutes.
+
+---
+
+## Phase 6 — Service 2: Admin Portal
+
+### 6.1 Add Resource
+1. Click **+ New Resource**
+2. Select **Private Repository (GitHub App)**
+3. Repository: `wintararaj-cmd/NavaPandua`
+4. Branch: `main`
+5. Build Pack: **Nixpacks**
+6. Name: `admin`
+7. Click **Save**
+
+### 6.2 General Configuration
+
+| Field | Value |
+|---|---|
+| Name | `admin` |
+| Build Pack | `Nixpacks` |
+| Is it a static site? | ❌ No (unchecked) |
+| Base Directory | `/frontend/admin-portal` |
+| Install Command | `npm install` |
+| Build Command | `npm run build` |
+| Start Command | `npm run preview` |
+| Publish Directory | `/` |
+
+### 6.3 Domain
+```
+https://admin.navadaya.in
+```
+
+### 6.4 Environment Variables
+```env
+VITE_API_URL=https://api.navadaya.in/api/v1
+NODE_ENV=production
+```
+
+### 6.5 Deploy
+Click **Deploy**. Admin portal available at `https://admin.navadaya.in`.
+
+---
+
+## Phase 7 — Service 3: Landing Page
+
+### 7.1 Add Resource
+1. Click **+ New Resource**
+2. Select **Private Repository (GitHub App)**
+3. Repository: `wintararaj-cmd/NavaPandua`
+4. Branch: `main`
+5. Build Pack: **Nixpacks**
+6. Name: `LandingPage`
+7. Click **Save**
+
+### 7.2 General Configuration
+
+| Field | Value |
+|---|---|
+| Name | `LandingPage` |
+| Build Pack | `Nixpacks` |
+| Is it a static site? | ✅ Yes (checked) |
+| Is it a SPA? | ❌ No |
+| Static Image | `nginx:alpine` |
+| Base Directory | `/frontend/landing-page` |
+| Publish Directory | `dist` |
+
+### 7.3 Domains
+```
+https://navadaya.in
+https://nabodaya.in
+```
+
+### 7.4 Deploy
+Click **Deploy**. Landing page live at `https://navadaya.in`.
+
+---
+
+## Phase 8 — Verify SSL Certificates
+
+After all three services are deployed and **healthy**:
+
+1. Go to **Servers** (left sidebar) → click your server → **Proxy** tab
+2. Click **Restart Proxy**
+3. Wait 1–2 minutes
+
+Test from PowerShell on your local machine:
+```powershell
+curl.exe -kv https://api.navadaya.in 2>&1 | Select-String "issuer|subject|HTTP"
+curl.exe -kv https://admin.navadaya.in 2>&1 | Select-String "issuer|subject|HTTP"
+curl.exe -kv https://navadaya.in 2>&1 | Select-String "issuer|subject|HTTP"
+```
+
+Each should show `issuer: Let's Encrypt` — NOT `TRAEFIK DEFAULT CERT`.
+
+---
+
+## Phase 9 — Post-Deploy Tasks
+
+In Coolify → **Main** service → **Terminal** tab → select `backend` container:
+
+```bash
+# Run migrations
+python manage.py migrate
+
+# Create admin user
+python manage.py createsuperuser
+
+# Collect static files (if needed)
+python manage.py collectstatic --noinput
+
+# Optional: Load sample data
+python populate_data.py
+```
+
+---
+
+## Phase 10 — Final Verification Checklist
+
+| URL | Expected Result |
+|---|---|
+| `https://navadaya.in` | ✅ Landing page loads, no SSL warning |
+| `https://admin.navadaya.in` | ✅ Login page loads |
+| `https://api.navadaya.in/api/v1/` | ✅ JSON response or 401 |
+| `https://api.navadaya.in/admin/` | ✅ Django admin login page |
+
+---
+
+## Troubleshooting
+
+### ❌ Backend shows `Running (unhealthy)`
+**Cause:** `python:3.11-slim` image does NOT have `curl`. Health check uses `curl` = always fails.  
+**Fix:** Confirm `docker-compose.yml` healthcheck uses Python:
+```yaml
+healthcheck:
+  test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/')"]
+  interval: 30s
+  timeout: 10s
+  retries: 5
+  start_period: 40s
+```
+
+### ❌ `ERR_CERT_AUTHORITY_INVALID` (SSL error)
+**Cause:** Traefik fell back to self-signed cert because the backend was unhealthy during deploy.  
+**Fix:**
+1. Fix unhealthy backend (above)
+2. **Servers** → your server → **Proxy** → **Restart Proxy**
+3. Wait 2 min → hard-refresh browser (`Ctrl+Shift+R`)
+
+### ❌ `503 Service Unavailable` on `api.navadaya.in`
+**Cause:** Backend unhealthy — Traefik won't route to it.  
+**Fix:** Check **Logs** for `backend` container → fix error → Redeploy.
+
+### ❌ PostgreSQL authentication error
+**Cause:** Volume has stale data from old credentials.  
+**Fix:** Main → **Danger Zone** → delete `postgres_data_v3` volume → Redeploy.  
+> ⚠️ This wipes database data. Run migrations again after.
+
+### ❌ CORS errors in browser console
+**Fix:** Ensure no trailing slashes in env var:
+```
+CORS_ALLOWED_ORIGINS=https://navadaya.in,https://admin.navadaya.in
+```
+
+### ❌ Admin portal blank page / network errors
+**Fix:** Set `VITE_API_URL=https://api.navadaya.in/api/v1` in admin service env vars → Redeploy.
+
+---
+
+## Quick Reference
+
+### Domains
+| Service | Coolify Name | Domain |
+|---|---|---|
+| Django API | `Main` | `https://api.navadaya.in` |
+| Admin Portal | `admin` | `https://admin.navadaya.in` |
+| Landing Page | `LandingPage` | `https://navadaya.in`, `https://nabodaya.in` |
+
+### Coolify Navigation
+| Task | Path |
+|---|---|
+| Restart SSL / Traefik | Servers → localhost → Proxy → Restart Proxy |
+| Run commands in container | Projects → Navadaya → production → [Service] → Terminal |
+| View logs | Projects → Navadaya → production → [Service] → Logs |
+| Edit env vars | Projects → Navadaya → production → [Service] → Environment Variables |
+| Delete a volume | Projects → Navadaya → production → [Service] → Danger Zone |
+| Force redeploy | Projects → Navadaya → production → [Service] → Redeploy |

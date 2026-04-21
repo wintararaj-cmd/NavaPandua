@@ -22,6 +22,7 @@ import Library from './pages/Library';
 import LiveClasses from './pages/LiveClasses';
 import Performance from './pages/Performance';
 import Settings from './pages/Settings';
+import Assignments from './pages/Assignments';
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -79,6 +80,7 @@ function App() {
             <Route path="fees" element={<Fees />} />
             <Route path="exams" element={<Exams />} />
             <Route path="reports" element={<Performance />} />
+            <Route path="assignments" element={<Assignments />} />
             <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
