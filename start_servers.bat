@@ -13,12 +13,16 @@ set "PROJECT_ROOT=%~dp0"
 echo [1/3] Starting Django Backend...
 start "Django Backend" cmd /k "cd /d %PROJECT_ROOT%backend && echo Activating Virtual Environment... && call .\venv\Scripts\activate && echo Starting Server... && python manage.py runserver"
 
-:: 2. Start Frontend Server
-echo [2/3] Starting React Frontend (Admin Portal)...
-start "React Frontend" cmd /k "cd /d %PROJECT_ROOT%frontend\admin-portal && echo Starting Vite Dev Server... && npm run dev"
+:: 2. Start Admin Portal
+echo [2/4] Starting React Frontend (Admin Portal)...
+start "Admin Portal" cmd /k "cd /d %PROJECT_ROOT%frontend\admin-portal && echo Starting Vite Dev Server... && npm run dev"
 
-:: 3. Check for Redis/Celery (Optional but recommended if services depend on it)
-echo [3/3] Optional Services...
+:: 3. Start Landing Page
+echo [3/4] Starting Landing Page...
+start "Landing Page" cmd /k "cd /d %PROJECT_ROOT%frontend\landing-page && echo Starting Vite Dev Server... && npm run dev"
+
+:: 4. Check for Redis/Celery (Optional but recommended if services depend on it)
+echo [4/4] Optional Services...
 echo.
 echo TIP: If you need Celery workers, run the following in a new terminal:
 echo cd backend ^& .\venv\Scripts\activate ^& celery -A config worker -l info

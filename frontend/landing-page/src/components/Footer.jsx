@@ -1,72 +1,85 @@
-import { Mail, Phone, MapPin, Globe, Share2, Info } from 'lucide-react';
+import React from 'react';
+import { Mail, Phone, MapPin, Globe, Facebook, Twitter, Instagram, Linkedin, Youtube, ArrowRight } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer style={{ backgroundColor: 'var(--secondary)', color: 'white', padding: '5rem 0 2rem' }}>
+    <footer className="footer">
       <div className="container">
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1.5fr', gap: '4rem', marginBottom: '4rem' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
-              <img src="/logo.jpeg" alt="Logo" style={{ height: '40px', filter: 'brightness(1.5)' }} />
-              <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'white' }}>Navadaya Education Trust</span>
+        <div className="footer-grid">
+          {/* Brand & About */}
+          <div className="footer-brand-section">
+            <div className="footer-brand">
+              <div className="footer-logo">
+                <img src="/logo.png" alt="Logo" />
+              </div>
+              <div className="footer-brand-text">
+                <div className="footer-name">NAVADAYA</div>
+                <div className="footer-tagline">Education Trust</div>
+              </div>
             </div>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem', marginBottom: '2rem', maxWidth: '300px' }}>
-              Ensuring educational equity and excellence for every student, regardless of their background or geography.
+            <p className="footer-desc">
+              Navadaya Education Trust is an Indian NGO working to ensure happier 
+              childhoods for all children by giving them access to education, 
+              proper healthcare, and protection from exploitation.
             </p>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <Globe size={20} style={{ cursor: 'pointer', opacity: 0.8 }} />
-              <Share2 size={20} style={{ cursor: 'pointer', opacity: 0.8 }} />
-              <Info size={20} style={{ cursor: 'pointer', opacity: 0.8 }} />
+            <div className="footer-social">
+              <a href="#" className="footer-social-icon"><Facebook /></a>
+              <a href="#" className="footer-social-icon"><Twitter /></a>
+              <a href="#" className="footer-social-icon"><Instagram /></a>
+              <a href="#" className="footer-social-icon"><Linkedin /></a>
+              <a href="#" className="footer-social-icon"><Youtube /></a>
             </div>
           </div>
 
-          <div>
-            <h4 style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>Quick Links</h4>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-              <li><a href="#" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Our Work</a></li>
-              <li><a href="#" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Reports</a></li>
-              <li><a href="#" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Careers</a></li>
-              <li><a href="#" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Contact Us</a></li>
+          {/* Our Work */}
+          <div className="footer-col">
+            <h4>What We Do</h4>
+            <ul>
+              <li><a href="#">Education</a></li>
+              <li><a href="#">Health & Nutrition</a></li>
+              <li><a href="#">Child Protection</a></li>
+              <li><a href="#">Child Participation</a></li>
+              <li><a href="#">Our Reach</a></li>
             </ul>
           </div>
 
-          <div>
-            <h4 style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>Legal</h4>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-              <li><a href="#" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Privacy Policy</a></li>
-              <li><a href="#" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Terms of Use</a></li>
-              <li><a href="#" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Accessibility</a></li>
+          {/* Get Involved */}
+          <div className="footer-col">
+            <h4>Get Involved</h4>
+            <ul>
+              <li><a href="#">Donate Now</a></li>
+              <li><a href="#">Volunteer</a></li>
+              <li><a href="#">Corporate Partnerships</a></li>
+              <li><a href="#">Careers</a></li>
+              <li><a href="#">Contact Us</a></li>
             </ul>
           </div>
 
-          <div>
-            <h4 style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>Stay Updated</h4>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', marginBottom: '1rem' }}>
-              Receive updates on educational equity and policy right in your inbox.
+          {/* Newsletter */}
+          <div className="footer-col footer-newsletter">
+            <h4>Join The Movement</h4>
+            <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.65)', marginBottom: '1rem', lineHeight: '1.6' }}>
+              Sign up for our newsletter to receive updates on how you can help 
+              us change children's lives.
             </p>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <input 
-                type="email" 
-                placeholder="Email address" 
-                style={{ 
-                  backgroundColor: 'rgba(255,255,255,0.1)', 
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: '8px',
-                  padding: '0.6rem 1rem',
-                  color: 'white',
-                  flex: 1
-                }} 
-              />
-              <button className="btn btn-primary" style={{ padding: '0.6rem 1.2rem', borderRadius: '8px' }}>Join</button>
-            </div>
+            <form onSubmit={(e) => e.preventDefault()}>
+              <input type="email" placeholder="Email Address" required />
+              <button type="submit" className="btn btn-yellow">
+                SUBSCRIBE <ArrowRight size={16} />
+              </button>
+            </form>
           </div>
         </div>
 
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>
-          <p>© 2026 Navadaya Education Trust. All Rights Reserved.</p>
-          <div style={{ display: 'flex', gap: '2rem' }}>
-            <span>Contact: (123) 456-7890</span>
-            <span>Email: info@navadaya.org</span>
+        {/* Bottom Bar */}
+        <div className="footer-bottom">
+          <div className="copyright">
+            © 2026 Navadaya Education Trust. All Rights Reserved. | Registered under IT Act 12A & 80G.
+          </div>
+          <div className="legal-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Use</a>
+            <a href="#">Disclaimer</a>
           </div>
         </div>
       </div>

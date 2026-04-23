@@ -1,69 +1,68 @@
 import React from 'react';
-import { BookOpen, Users, BarChart, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 
 const areas = [
   {
-    icon: BookOpen,
-    title: "Academic Excellence",
-    description: "Curriculum development and teacher training programs designed to elevate standards across all institutions."
+    image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    title: "Education",
+    description: "Ensuring children stay in school and receive quality education through our learning centers and school support programs.",
+    color: "var(--primary)"
   },
   {
-    icon: Users,
-    title: "Educational Equity",
-    description: "Ensuring marginalized communities have equal access to advanced infrastructure and career pathways."
+    image: "https://images.unsplash.com/photo-1542810634-71277d95dcbb?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    title: "Nutrition & Health",
+    description: "Addressing malnutrition and providing basic healthcare to children and mothers in underserved communities.",
+    color: "var(--accent-orange)"
   },
   {
-    icon: BarChart,
-    title: "Policy & Research",
-    description: "Data-driven advocacy to influence educational reform at the state and national levels."
+    image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    title: "Safety & Protection",
+    description: "Protecting children from labor, child marriage, and exploitation while creating safe environments.",
+    color: "var(--accent-teal)"
   },
   {
-    icon: ShieldCheck,
-    title: "Institutional Support",
-    description: "Financial and administrative guidance for schools and computer centers under the Navadaya umbrella."
+    image: "https://images.unsplash.com/photo-1473649085228-583485e6e4d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
+    title: "Child Participation",
+    description: "Empowering children to know their rights and actively participate in their own development and governance.",
+    color: "var(--accent-pink)"
   }
 ];
 
 const FocusAreas = () => {
   return (
-    <section id="focus" style={{ backgroundColor: 'var(--bg-soft)' }}>
+    <section id="focus" className="focus-section">
       <div className="container">
-        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 className="section-title">Common Goals, Unique Paths</h2>
-          <p className="section-subtitle" style={{ margin: '0 auto 3rem' }}>
-            We bridge the gap between potential and opportunity through focused intervention in key educational sectors.
+        <div className="section-header">
+          <span className="section-label">WHAT WE <span className="text-accent" style={{ textTransform: 'lowercase', color: 'var(--primary-dark)' }}>do</span></span>
+          <div className="focus-title-bar">
+            <h2>Our Focus Areas</h2>
+          </div>
+          <p className="section-desc">
+            We work at all levels—with children, communities, and government—to ensure lasting change 
+            in the lives of marginalized children.
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem' }}>
+        <div className="focus-grid">
           {areas.map((area, index) => (
             <motion.div 
               key={index}
-              whileHover={{ translateY: -10 }}
-              style={{
-                background: 'white',
-                padding: '3rem 2rem',
-                borderRadius: '24px',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
-                transition: 'var(--transition-smooth)'
-              }}
+              className="focus-card"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <div style={{ 
-                width: '60px', 
-                height: '60px', 
-                backgroundColor: 'var(--bg-soft)', 
-                borderRadius: '16px', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                marginBottom: '1.5rem',
-                color: 'var(--primary)'
-              }}>
-                <area.icon size={30} />
+              <img src={area.image} alt={area.title} className="focus-card-image" />
+              <div className="focus-card-body">
+                <h3>{area.title}</h3>
+                <p>{area.description}</p>
+                <a href="#more" className="focus-card-link" style={{ color: area.color }}>
+                  LEARN MORE <ArrowRight size={16} />
+                </a>
               </div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--secondary)' }}>{area.title}</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>{area.description}</p>
+              <div className="focus-card-border" style={{ backgroundColor: area.color }}></div>
             </motion.div>
           ))}
         </div>

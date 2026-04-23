@@ -104,7 +104,7 @@ In the **General** tab → **Domains** section:
 Click **Save**.
 
 ### 5.3 Environment Variables
-Go to **Environment Variables** tab. Add these exactly:
+Go to the **Environment Variables** tab. Add these exactly:
 
 ```env
 DEBUG=False
@@ -112,12 +112,19 @@ SECRET_KEY=euw1YBOD-4xDP2ny2zvDqYsADg3VYbZMFMdnZg3wLLxNW1GNgFc_HK2iybKmLI6p3fo
 ALLOWED_HOSTS=navadaya.in,api.navadaya.in,admin.navadaya.in,localhost,127.0.0.1
 CORS_ALLOWED_ORIGINS=https://navadaya.in,https://admin.navadaya.in
 CSRF_TRUSTED_ORIGINS=https://navadaya.in,https://admin.navadaya.in
+
+# DATABASE CONFIGURATION
+# If using Coolify's internal Postgres:
 DATABASE_URL=postgresql://school_user:school123@postgres:5432/school_mgmt_db
+# OR If using an external/machine-formatted Postgres DB:
+# DATABASE_URL=postgresql://user:password@host:port/dbname?sslmode=require
+
 POSTGRES_DB=school_mgmt_db
 POSTGRES_USER=school_user
 POSTGRES_PASSWORD=school123
 POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
+
 REDIS_URL=redis://redis:6379/0
 CELERY_BROKER_URL=redis://redis:6379/1
 JWT_ACCESS_TOKEN_LIFETIME=60
@@ -127,7 +134,7 @@ DEFAULT_PAGE_SIZE=20
 EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 ```
 
-> **IMPORTANT:** `POSTGRES_USER` must be `school_user` (not `postgres`) — this matches the `docker-compose.yml` postgres service definition exactly.
+> **IMPORTANT:** If you are using a **machine-formatted external database**, simply paste the full connection string into the `DATABASE_URL` field and ensure the `POSTGRES_...` variables match or are commented out if the application logic relies solely on `DATABASE_URL`.
 
 Click **Save**.
 
@@ -300,6 +307,22 @@ CORS_ALLOWED_ORIGINS=https://navadaya.in,https://admin.navadaya.in
 
 ### ❌ Admin portal blank page / network errors
 **Fix:** Set `VITE_API_URL=https://api.navadaya.in/api/v1` in admin service env vars → Redeploy.
+
+## Phase 11 — Ongoing Maintenance & UI Updates
+
+### 11.1 Updating the UI (Landing Page / Admin Portal)
+If you make changes to the UI (e.g., updating the Hero section frame or Success Story styles):
+1.  **Commit & Push**: Push your changes to the `main` branch on GitHub.
+2.  **Auto-Deploy**: If you enabled "Auto-Deploy" in Coolify, it will start automatically.
+3.  **Manual Deploy**: If not, go to the `LandingPage` or `admin` resource and click **Redeploy**.
+4.  **Clear Cache**: After a UI update, perform a hard-refresh in your browser (`Ctrl + Shift + R`).
+
+### 11.2 Database Migrations
+When adding new features that change the database schema:
+1.  Push your code with the new migration files (in `apps/*/migrations/`).
+2.  Deploy the `Main` service.
+3.  Go to **Main** → **Terminal** → select `backend`.
+4.  Run `python manage.py migrate`.
 
 ---
 

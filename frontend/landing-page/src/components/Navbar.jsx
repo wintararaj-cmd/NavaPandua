@@ -1,37 +1,68 @@
 import React from 'react';
 import { Link } from 'react-scroll';
+import { Mail, Phone, Search, Heart } from 'lucide-react';
 
 const Navbar = () => {
   return (
-    <nav className="glass-nav">
-      <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-        <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src="/logo.jpeg" alt="Navadaya Logo" style={{ height: '50px', borderRadius: '5px' }} />
-          <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--secondary)', letterSpacing: '-0.5px' }}>
-            Navadaya <span style={{ color: 'var(--primary)' }}>Education Trust</span>
-          </span>
-        </div>
-        
-        <div className="links" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-          <Link to="hero" smooth={true} duration={500} className="nav-link">Home</Link>
-          <Link to="focus" smooth={true} duration={500} className="nav-link">Focus Areas</Link>
-          <Link to="impact" smooth={true} duration={500} className="nav-link">Our Impact</Link>
-          <a href="/donate" className="btn btn-primary" style={{ padding: '0.6rem 1.5rem' }}>Donate</a>
-          <a 
-            href={`${import.meta.env.VITE_ADMIN_PORTAL_URL || (import.meta.env.PROD ? 'https://admin.navadaya.in' : 'http://localhost:5173')}/login`} 
-            className="btn btn-outline" 
-            style={{ 
-              padding: '0.6rem 1.5rem', 
-              fontSize: '0.85rem',
-              borderColor: 'var(--secondary)',
-              color: 'var(--secondary)'
-            }}
-          >
-            ERP Login
-          </a>
+    <header>
+      {/* Top Utility Bar - Dark */}
+      <div className="topbar">
+        <div className="container">
+          <div className="topbar-left">
+            <span className="topbar-item">
+              <Mail /> info@navadaya.org
+            </span>
+            <span className="topbar-item">
+              <Phone /> +91 98765 43210
+            </span>
+          </div>
+          <div className="topbar-right">
+            <span className="topbar-item" style={{ cursor: 'pointer' }}>
+              <Search /> Search
+            </span>
+          </div>
         </div>
       </div>
-    </nav>
+
+      {/* Main Navigation */}
+      <nav className="main-nav">
+        <div className="nav-inner">
+          {/* Logo Block - Yellow, overlapping */}
+          <div className="logo-wrapper">
+            <Link to="hero" smooth={true} duration={500} className="logo-block">
+              <img src="/logo.png" alt="Navadaya Logo" />
+            </Link>
+            <div className="brand-text">
+              <span className="name">Navadaya</span>
+              <span className="tagline">Education Trust</span>
+            </div>
+          </div>
+
+          {/* Nav Links */}
+          <div className="nav-links">
+            <Link to="hero" smooth={true} duration={500} className="nav-link">Home</Link>
+            <Link to="about" smooth={true} duration={500} className="nav-link">Who We Are</Link>
+            <Link to="focus" smooth={true} duration={500} className="nav-link">What We Do</Link>
+            <Link to="impact" smooth={true} duration={500} className="nav-link">Our Impact</Link>
+            <Link to="stories" smooth={true} duration={500} className="nav-link">Stories</Link>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="nav-cta">
+            <a 
+              href={`${import.meta.env.VITE_ADMIN_PORTAL_URL || (import.meta.env.PROD ? 'https://admin.navadaya.in' : 'http://localhost:5173')}/login`} 
+              className="btn btn-outline-dark"
+              style={{ padding: '10px 20px', fontSize: '0.8rem' }}
+            >
+              ERP Login
+            </a>
+            <a href="#donate" className="btn btn-yellow" style={{ padding: '10px 24px', fontSize: '0.85rem' }}>
+              <Heart size={16} /> Donate Now
+            </a>
+          </div>
+        </div>
+      </nav>
+    </header>
   );
 };
 
