@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
 import { teacherService } from '../services/teacherService';
-import type { Teacher, TeacherFormData } from '../services/teacherService';
+import type { Staff as Teacher, StaffFormData as TeacherFormData } from '../services/teacherService';
 import TeacherModal from '../components/teachers/TeacherModal';
 
 export default function Teachers() {
@@ -43,13 +43,13 @@ export default function Teachers() {
     };
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this teacher?')) {
+        if (window.confirm('Are you sure you want to delete this staff member?')) {
             try {
                 await teacherService.delete(id);
                 fetchTeachers();
             } catch (error) {
-                console.error('Error deleting teacher:', error);
-                alert('Failed to delete teacher');
+                console.error('Error deleting staff:', error);
+                alert('Failed to delete staff member');
             }
         }
     };
@@ -65,12 +65,12 @@ export default function Teachers() {
             setIsModalOpen(false);
             fetchTeachers();
         } catch (error: any) {
-            console.error('Error saving teacher:', error);
+            console.error('Error saving staff:', error);
             const message = error.response?.data?.detail ||
                 error.response?.data?.message ||
                 Object.values(error.response?.data || {})[0] ||
-                'Failed to save teacher';
-            toast.error(typeof message === 'string' ? message : 'Failed to save teacher');
+                'Failed to save staff member';
+            toast.error(typeof message === 'string' ? message : 'Failed to save staff member');
         } finally {
             setActionLoading(false);
         }
@@ -79,13 +79,13 @@ export default function Teachers() {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900">Teachers</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Staff Directory</h1>
                 <button
                     onClick={handleCreate}
                     className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
                 >
                     <Plus className="-ml-1 mr-2 h-5 w-5" />
-                    Add Teacher
+                    Add Staff
                 </button>
             </div>
 
@@ -99,7 +99,7 @@ export default function Teachers() {
                             <input
                                 type="text"
                                 className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                                placeholder="Search teachers..."
+                                placeholder="Search staff members..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -147,7 +147,7 @@ export default function Teachers() {
                             ) : teachers.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
-                                        No teachers found
+                                        No staff found
                                     </td>
                                 </tr>
                             ) : (

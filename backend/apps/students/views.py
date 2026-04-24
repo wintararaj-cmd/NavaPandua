@@ -1,17 +1,24 @@
 
 from rest_framework import viewsets, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Student
-from .serializers import StudentSerializer
+from .models import Student, StudentPromotionHistory, SchoolLeavingCertificate
+from .serializers import (
+    StudentSerializer, CreateStudentSerializer, 
+    StudentPromotionHistorySerializer, SchoolLeavingCertificateSerializer
+)
 
 from apps.core.mixins import SchoolFilterMixin
 from apps.accounts.permissions import IsAdminOrTeacher
 
 class StudentViewSet(SchoolFilterMixin, viewsets.ModelViewSet):
     queryset = Student.objects.all()
-    serializer_class = StudentSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CreateStudentSerializer
+        return StudentSerializer
     filterset_fields = ['current_class', 'section', 'user__gender', 'user__profile__blood_group']
     search_fields = ['user__first_name', 'user__last_name', 'admission_number', 'father_name']
     ordering_fields = ['admission_number', 'user__first_name']
@@ -44,3 +51,28 @@ class StudentViewSet(SchoolFilterMixin, viewsets.ModelViewSet):
                 return Response(serializer.data)
             return Response({'error': 'Student profile not found'}, status=404)
         return Response({'error': 'User is not a student'}, status=403)
+
+
+class StudentPromotionHistoryViewSet(SchoolFilterMixin, viewsets.ModelViewSet):
+    """Track student promotions."""
+    queryset = StudentPromotionHistory.objects.all()
+    serializer_class = StudentPromotionHistorySerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrTeacher]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['from_session', 'to_session', 'from_class', 'to_class', 'status']
+    
+    def perform_create(self, serializer):
+        serializer.save(promoted_by=self.request.user)
+
+
+class SchoolLeavingCertificateViewSet(SchoolFilterMixin, viewsets.ModelViewSet):
+    """Generate and track SLCs."""
+    queryset = SchoolLeavingCertificate.objects.all()
+    serializer_class = SchoolLeavingCertificateSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminOrTeacher]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['academic_session']
+    search_fields = ['slc_number', 'student__user__first_name', 'student__user__last_name']
+    
+    def perform_create(self, serializer):
+        serializer.save(generated_by=self.request.user)

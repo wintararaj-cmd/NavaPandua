@@ -20,6 +20,9 @@ class User(AbstractUser):
         ACCOUNTANT = 'ACCOUNTANT', 'Accountant'
         LIBRARIAN = 'LIBRARIAN', 'Librarian'
         RECEPTIONIST = 'RECEPTIONIST', 'Receptionist'
+        DRIVER = 'DRIVER', 'Driver'
+        TRANSPORT_MANAGER = 'TRANSPORT_MANAGER', 'Transport Manager'
+        HR = 'HR', 'HR Manager'
 
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=20, blank=True)
@@ -156,6 +159,45 @@ class UserProfile(BaseModel, ContactInfo):
             self.postal_code
         ]
         return ', '.join(filter(None, parts))
+
+
+class StaffProfile(BaseModel):
+    """
+    Staff-specific profile information for employees (Teachers, Accountants, etc.).
+    """
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='staff_profile'
+    )
+    school = models.ForeignKey(
+        'schools.School',
+        on_delete=models.CASCADE,
+        related_name='staff_members',
+        null=True,
+        blank=True
+    )
+    employee_id = models.CharField(max_length=50)
+    department = models.CharField(max_length=100, blank=True)
+    designation = models.CharField(max_length=100, blank=True)
+    qualification = models.CharField(max_length=255, blank=True)
+    joining_date = models.DateField(null=True, blank=True)
+    leaving_date = models.DateField(null=True, blank=True)
+    
+    # Financial/HR
+    basic_salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    bank_account_number = models.CharField(max_length=100, blank=True)
+    bank_name = models.CharField(max_length=100, blank=True)
+    ifsc_code = models.CharField(max_length=20, blank=True)
+    
+    class Meta:
+        db_table = 'staff_profiles'
+        verbose_name = 'Staff Profile'
+        verbose_name_plural = 'Staff Profiles'
+        unique_together = [['school', 'employee_id']]
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.designation}"
 
 
 class EmailVerification(BaseModel):

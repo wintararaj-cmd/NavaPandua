@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Save, Building2, GraduationCap, CreditCard, Bell, Shield, 
-    Upload, Globe, Phone, Mail, MapPin, Calendar, Clock 
+    Upload, Globe, Phone, Mail, MapPin, Calendar, Clock, Trash2, Plus
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { masterDataService, type MasterDataItem } from '../services/masterDataService';
+import { authStore } from '../stores/authStore';
 
 export default function Settings() {
     const [activeTab, setActiveTab] = useState<'general' | 'academic' | 'financial' | 'notifications' | 'security'>('general');
@@ -19,11 +21,88 @@ export default function Settings() {
 
     const tabs = [
         { id: 'general', label: 'General', icon: Building2 },
+        { id: 'master_data', label: 'Master Data', icon: Globe },
         { id: 'academic', label: 'Academic', icon: GraduationCap },
         { id: 'financial', label: 'Financial', icon: CreditCard },
         { id: 'notifications', label: 'Notifications', icon: Bell },
         { id: 'security', label: 'Security', icon: Shield },
     ] as const;
+
+    const [activeMasterDataTab, setActiveMasterDataTab] = useState('category');
+    const [masterDataItems, setMasterDataItems] = useState<MasterDataItem[]>([]);
+    const [newItemValue, setNewItemValue] = useState('');
+    const [isMasterDataLoading, setIsMasterDataLoading] = useState(false);
+    const user = authStore(state => state.user);
+    const schoolId = user?.school?.id || user?.school; // Handle both object and string ID
+
+    useEffect(() => {
+        if (activeTab === 'master_data' && schoolId) {
+            fetchMasterData();
+        }
+    }, [activeTab, activeMasterDataTab, schoolId]);
+
+    const fetchMasterData = async () => {
+        if (!schoolId) return;
+        try {
+            setIsMasterDataLoading(true);
+            const domainMap: Record<string, string> = {
+                'category': 'Category',
+                'house': 'House',
+                'fee category': 'Fee Category',
+                'transport type': 'Transport Type',
+                'religion': 'Religion',
+                'fee payment mode': 'Fee Payment Mode'
+            };
+            const domain = domainMap[activeMasterDataTab] || activeMasterDataTab;
+            const data = await masterDataService.getByDomain(schoolId, domain);
+            setMasterDataItems(data.results || data);
+        } catch (error) {
+            console.error('Error fetching master data:', error);
+            toast.error('Failed to load master data');
+        } finally {
+            setIsMasterDataLoading(false);
+        }
+    };
+
+    const handleAddMasterData = async () => {
+        if (!newItemValue.trim() || !schoolId) return;
+        try {
+            const domainMap: Record<string, string> = {
+                'category': 'Category',
+                'house': 'House',
+                'fee category': 'Fee Category',
+                'transport type': 'Transport Type',
+                'religion': 'Religion',
+                'fee payment mode': 'Fee Payment Mode'
+            };
+            const domain = domainMap[activeMasterDataTab] || activeMasterDataTab;
+            
+            await masterDataService.create(schoolId, {
+                domain: domain,
+                identifier: domain.replace(/\s+/g, ''),
+                description: newItemValue.trim()
+            });
+            
+            setNewItemValue('');
+            fetchMasterData();
+            toast.success('Item added successfully');
+        } catch (error) {
+            console.error('Error adding master data:', error);
+            toast.error('Failed to add item');
+        }
+    };
+
+    const handleDeleteMasterData = async (id: string) => {
+        if (!window.confirm('Are you sure you want to delete this item?') || !schoolId) return;
+        try {
+            await masterDataService.delete(schoolId, id);
+            fetchMasterData();
+            toast.success('Item deleted successfully');
+        } catch (error) {
+            console.error('Error deleting master data:', error);
+            toast.error('Failed to delete item');
+        }
+    };
 
     return (
         <div className="space-y-6 max-w-6xl mx-auto pb-12">
@@ -129,6 +208,93 @@ export default function Settings() {
                                         <option>America/Los_Angeles (PST)</option>
                                         <option>Asia/Kolkata (IST)</option>
                                     </select>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'master_data' && (
+                        <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="border-b border-gray-100 pb-5">
+                                <h2 className="text-xl font-bold text-gray-900">Master Data Management</h2>
+                                <p className="text-sm text-gray-500 mt-1">Configure global dropdowns and categorization parameters (e.g. Houses, Transport Types, Fee Categories).</p>
+                            </div>
+                            
+                            <div className="flex border-b border-gray-200">
+                                {['Category', 'House', 'Fee Category', 'Transport Type', 'Religion', 'Fee Payment Mode'].map(tab => (
+                                    <button 
+                                        key={tab}
+                                        onClick={() => setActiveMasterDataTab(tab.toLowerCase())}
+                                        className={`px-4 py-2 border-b-2 font-medium text-sm transition-colors ${
+                                            activeMasterDataTab === tab.toLowerCase() 
+                                            ? 'border-indigo-600 text-indigo-600' 
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        }`}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        value={newItemValue}
+                                        onChange={(e) => setNewItemValue(e.target.value)}
+                                        placeholder={`Add new ${activeMasterDataTab}...`}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleAddMasterData()}
+                                        className="flex-1 rounded-xl border-gray-300 py-2.5 px-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
+                                    />
+                                    <button 
+                                        onClick={handleAddMasterData}
+                                        className="px-6 py-2 bg-indigo-600 text-white rounded-xl shadow-sm hover:bg-indigo-700 font-medium flex items-center gap-2"
+                                    >
+                                        <Plus className="h-4 w-4" /> Add
+                                    </button>
+                                </div>
+                                
+                                <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-black text-gray-400 uppercase tracking-wider">Value</th>
+                                                <th className="px-6 py-3 text-right text-xs font-black text-gray-400 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {isMasterDataLoading ? (
+                                                <tr>
+                                                    <td colSpan={2} className="px-6 py-12 text-center text-sm text-gray-500">
+                                                        <div className="flex flex-col items-center gap-2">
+                                                            <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                                                            Loading data...
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ) : masterDataItems.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={2} className="px-6 py-12 text-center text-sm text-gray-500">
+                                                        No items found in this category.
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                masterDataItems.map((item) => (
+                                                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{item.description}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                            <button 
+                                                                onClick={() => handleDeleteMasterData(item.id)}
+                                                                className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>

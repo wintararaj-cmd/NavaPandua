@@ -68,23 +68,35 @@ class AdmissionApplication(BaseModel):
     
     # Student Details
     first_name = models.CharField(max_length=100)
+    middle_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100)
     date_of_birth = models.DateField()
-    gender = models.CharField(
-        max_length=10,
-        choices=[
-            ('MALE', 'Male'),
-            ('FEMALE', 'Female'),
-            ('OTHER', 'Other')
-        ]
-    )
+    gender = models.CharField(max_length=10)
+    place_of_birth = models.CharField(max_length=100, blank=True)
+    mother_tongue = models.CharField(max_length=50, blank=True)
+    nationality = models.CharField(max_length=50, default='Indian')
+    religion = models.CharField(max_length=50, blank=True)
+    caste = models.CharField(max_length=20, blank=True)
+    blood_group = models.CharField(max_length=5, blank=True)
     
-    # Parent Details
+    # Parent Details - Father
     father_name = models.CharField(max_length=100)
+    father_phone = models.CharField(max_length=20)
+    father_email = models.EmailField(blank=True)
+    father_qualification = models.CharField(max_length=100, blank=True)
+    father_occupation = models.CharField(max_length=100, blank=True)
+    father_income = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    
+    # Parent Details - Mother
     mother_name = models.CharField(max_length=100)
-    parent_phone = models.CharField(max_length=20)
-    parent_email = models.EmailField(blank=True)
+    mother_phone = models.CharField(max_length=20)
+    mother_email = models.EmailField(blank=True)
+    mother_qualification = models.CharField(max_length=100, blank=True)
+    
     address = models.TextField()
+    city = models.CharField(max_length=100, blank=True)
+    state = models.CharField(max_length=100, blank=True)
+    postal_code = models.CharField(max_length=20, blank=True)
     
     # Academic Details
     target_class = models.ForeignKey(
@@ -92,8 +104,20 @@ class AdmissionApplication(BaseModel):
         on_delete=models.PROTECT,
         related_name='student_applications'
     )
-    previous_school = models.CharField(max_length=200, blank=True)
-    previous_grade = models.CharField(max_length=50, blank=True)
+    previous_school_name = models.CharField(max_length=200, blank=True)
+    previous_school_board = models.CharField(max_length=100, blank=True)
+    previous_school_class = models.CharField(max_length=50, blank=True)
+    
+    # Other
+    is_single_parent = models.BooleanField(default=False)
+    legal_guardian = models.CharField(max_length=100, blank=True)
+    second_language = models.CharField(max_length=50, blank=True)
+    third_language = models.CharField(max_length=50, blank=True)
+    
+    # Photos
+    photo = models.ImageField(upload_to='admissions/photos/', null=True, blank=True)
+    father_photo = models.ImageField(upload_to='admissions/fathers/', null=True, blank=True)
+    mother_photo = models.ImageField(upload_to='admissions/mothers/', null=True, blank=True)
     
     # Status
     status = models.CharField(
@@ -101,7 +125,6 @@ class AdmissionApplication(BaseModel):
         choices=[
             ('SUBMITTED', 'Submitted'),
             ('UNDER_REVIEW', 'Under Review'),
-            ('INTERVIEW_SCHEDULED', 'Interview Scheduled'),
             ('SELECTED', 'Selected'),
             ('REJECTED', 'Rejected'),
             ('ADMITTED', 'Admitted'),

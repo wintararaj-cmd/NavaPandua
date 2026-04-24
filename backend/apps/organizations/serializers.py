@@ -37,8 +37,8 @@ class OrganizationSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'subdomain', 'logo', 'website',
             'phone', 'alternate_phone', 'email', 'alternate_email',
-            'address_line1', 'address_line2', 'city', 'state',
-            'country', 'postal_code', 'full_address',
+            'subscription_plan', 'address_line1', 'address_line2', 
+            'city', 'state', 'country', 'postal_code', 'full_address',
             'is_active', 'max_schools', 'max_students', 'max_teachers',
             'owner', 'total_schools', 'total_students', 'total_teachers',
             'settings', 'created_at', 'updated_at'
@@ -59,7 +59,8 @@ class CreateOrganizationSerializer(serializers.ModelSerializer):
         model = Organization
         fields = [
             'name', 'subdomain', 'logo', 'website',
-            'phone', 'email', 'address_line1', 'address_line2',
+            'phone', 'email', 'subscription_plan',
+            'address_line1', 'address_line2',
             'city', 'state', 'country', 'postal_code'
         ]
     

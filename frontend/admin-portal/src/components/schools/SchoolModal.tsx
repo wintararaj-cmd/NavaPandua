@@ -24,7 +24,13 @@ export default function SchoolModal({ isOpen, onClose, onSave, initialData }: Sc
         city: '',
         state: '',
         country: 'India',
-        postal_code: ''
+        postal_code: '',
+        principal_name: '',
+        chairman_name: '',
+        chairman_email: '',
+        chairman_phone: '',
+        admin_email: '',
+        admin_password: ''
     });
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [loading, setLoading] = useState(false);
@@ -46,7 +52,13 @@ export default function SchoolModal({ isOpen, onClose, onSave, initialData }: Sc
                     city: initialData.city || '',
                     state: initialData.state || '',
                     country: initialData.country || 'India',
-                    postal_code: initialData.postal_code || ''
+                    postal_code: initialData.postal_code || '',
+                    principal_name: initialData.principal_name || '',
+                    chairman_name: initialData.chairman_name || '',
+                    chairman_email: initialData.chairman_email || '',
+                    chairman_phone: initialData.chairman_phone || '',
+                    admin_email: '', // Don't show password/admin email on edit
+                    admin_password: ''
                 });
             } else {
                 setFormData({
@@ -62,7 +74,13 @@ export default function SchoolModal({ isOpen, onClose, onSave, initialData }: Sc
                     city: '',
                     state: '',
                     country: 'India',
-                    postal_code: ''
+                    postal_code: '',
+                    principal_name: '',
+                    chairman_name: '',
+                    chairman_email: '',
+                    chairman_phone: '',
+                    admin_email: '',
+                    admin_password: ''
                 });
             }
         }
@@ -71,7 +89,14 @@ export default function SchoolModal({ isOpen, onClose, onSave, initialData }: Sc
     const fetchOrganizations = async () => {
         try {
             const data = await organizationService.getOrganizations();
-            setOrganizations(Array.isArray(data) ? data : data.results || []);
+            const orgs = Array.isArray(data) ? data : data.results || [];
+            console.log('Fetched organizations:', orgs);
+            setOrganizations(orgs);
+            
+            // Auto-select if only one organization exists and none is selected
+            if (orgs.length === 1 && !formData.organization && !initialData) {
+                setFormData(prev => ({ ...prev, organization: orgs[0].id }));
+            }
         } catch (error) {
             console.error('Failed to fetch organizations', error);
         }
@@ -182,18 +207,98 @@ export default function SchoolModal({ isOpen, onClose, onSave, initialData }: Sc
                                     onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-xs font-black text-gray-400 uppercase tracking-wider mb-1">Board/Affiliation</label>
+                             <div>
+                                 <label className="block text-xs font-black text-gray-400 uppercase tracking-wider mb-1">Board/Affiliation</label>
+                                 <select
+                                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                     value={formData.board}
+                                     onChange={(e) => setFormData({ ...formData, board: e.target.value })}
+                                 >
+                                     <option value="">Select Board</option>
+                                     <option value="CBSE">CBSE</option>
+                                     <option value="ICSE">ICSE</option>
+                                     <option value="STATE">State Board</option>
+                                     <option value="IB">IB</option>
+                                     <option value="IGCSE">IGCSE</option>
+                                 </select>
+                             </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-black text-gray-400 uppercase tracking-wider mb-1">Head of Institution / Principal Name</label>
+                            <input
+                                type="text"
+                                placeholder="e.g., Dr. John Doe"
+                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                value={formData.principal_name}
+                                onChange={(e) => setFormData({ ...formData, principal_name: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-gray-100">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Building2 className="w-4 h-4 text-indigo-600" />
+                            <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Chairman / Owner Details</h3>
+                        </div>
+                        <div className="space-y-4">
+                            <input
+                                type="text"
+                                placeholder="Chairman Name"
+                                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                value={formData.chairman_name}
+                                onChange={(e) => setFormData({ ...formData, chairman_name: e.target.value })}
+                            />
+                            <div className="grid grid-cols-2 gap-4">
                                 <input
-                                    type="text"
-                                    placeholder="e.g., CBSE, DTE"
+                                    type="email"
+                                    placeholder="Chairman Email"
                                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                                    value={formData.board}
-                                    onChange={(e) => setFormData({ ...formData, board: e.target.value })}
+                                    value={formData.chairman_email}
+                                    onChange={(e) => setFormData({ ...formData, chairman_email: e.target.value })}
+                                />
+                                <input
+                                    type="tel"
+                                    placeholder="Chairman Phone"
+                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                    value={formData.chairman_phone}
+                                    onChange={(e) => setFormData({ ...formData, chairman_phone: e.target.value })}
                                 />
                             </div>
                         </div>
                     </div>
+
+                    {!initialData && (
+                        <div className="pt-6 border-t border-gray-100">
+                            <div className="flex items-center gap-2 mb-4">
+                                <X className="w-4 h-4 text-indigo-600" />
+                                <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">School Admin Account</h3>
+                            </div>
+                            <div className="space-y-4">
+                                <p className="text-xs text-gray-500 mb-2">This account will be used by the school to login and manage their institution.</p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <input
+                                        type="email"
+                                        required={!initialData}
+                                        placeholder="Admin Email"
+                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                        value={formData.admin_email}
+                                        onChange={(e) => setFormData({ ...formData, admin_email: e.target.value })}
+                                    />
+                                    <input
+                                        type="password"
+                                        required={!initialData}
+                                        placeholder="Admin Password"
+                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                        value={formData.admin_password}
+                                        onChange={(e) => setFormData({ ...formData, admin_password: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, UserPlus, GraduationCap, Mail, Phone, Calendar } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, UserPlus, GraduationCap, Mail, Phone, Calendar, FileText } from 'lucide-react';
 import { studentService, type Student, type StudentFormData } from '../services/studentService';
 import { useInstitutionTerms } from '../hooks/useInstitutionTerms';
 import StudentModal from '../components/students/StudentModal';
+import PromotionModal from '../components/students/PromotionModal';
+import SLCModal from '../components/students/SLCModal';
 import toast from 'react-hot-toast';
 
 export default function Students() {
@@ -11,6 +13,8 @@ export default function Students() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
+    const [isSLCModalOpen, setIsSLCModalOpen] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState<Student | undefined>(undefined);
     const [actionLoading, setActionLoading] = useState(false);
 
@@ -46,6 +50,16 @@ export default function Students() {
         setIsModalOpen(true);
     };
 
+    const handlePromote = (student: Student) => {
+        setSelectedStudent(student);
+        setIsPromotionModalOpen(true);
+    };
+
+    const handleGenerateSLC = (student: Student) => {
+        setSelectedStudent(student);
+        setIsSLCModalOpen(true);
+    };
+
     const handleDelete = async (id: string) => {
         if (window.confirm(`Are you sure you want to delete this ${terms.studentLabel.toLowerCase()}?`)) {
             try {
@@ -59,7 +73,7 @@ export default function Students() {
         }
     };
 
-    const handleSubmit = async (data: StudentFormData) => {
+    const handleSubmit = async (data: FormData) => {
         try {
             setActionLoading(true);
             if (selectedStudent) {
@@ -196,15 +210,31 @@ export default function Students() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
-                                                student.is_active 
+                                                student.status === 'ACTIVE'
                                                     ? 'bg-green-100 text-green-700' 
+                                                    : student.status === 'LEFT' || student.status === 'GRADUATED'
+                                                    ? 'bg-blue-100 text-blue-700'
                                                     : 'bg-red-100 text-red-700'
                                             }`}>
-                                                {student.is_active ? 'Active' : 'Inactive'}
+                                                {student.status || 'ACTIVE'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => handlePromote(student)}
+                                                    title="Promote Student"
+                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                                >
+                                                    <GraduationCap className="h-4 w-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleGenerateSLC(student)}
+                                                    title="Generate SLC"
+                                                    className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                                                >
+                                                    <FileText className="h-4 w-4" />
+                                                </button>
                                                 <button
                                                     onClick={() => handleEdit(student)}
                                                     className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
@@ -233,6 +263,20 @@ export default function Students() {
                 onSubmit={handleSubmit}
                 student={selectedStudent}
                 isLoading={actionLoading}
+            />
+
+            <PromotionModal 
+                isOpen={isPromotionModalOpen}
+                onClose={() => setIsPromotionModalOpen(false)}
+                student={selectedStudent || null}
+                onSuccess={fetchStudents}
+            />
+
+            <SLCModal 
+                isOpen={isSLCModalOpen}
+                onClose={() => setIsSLCModalOpen(false)}
+                student={selectedStudent || null}
+                onSuccess={fetchStudents}
             />
         </div>
     );

@@ -19,6 +19,7 @@ from .serializers import (
     OrganizationDashboardSerializer
 )
 from apps.core.exceptions import NotFoundException, ForbiddenException
+from apps.accounts.permissions import IsSuperAdmin
 
 
 class OrganizationListCreateView(generics.ListCreateAPIView):
@@ -28,7 +29,10 @@ class OrganizationListCreateView(generics.ListCreateAPIView):
     GET /api/v1/organizations/
     POST /api/v1/organizations/
     """
-    permission_classes = [permissions.IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsSuperAdmin()]
+        return [permissions.IsAuthenticated()]
     
     def get_serializer_class(self):
         if self.request.method == 'POST':

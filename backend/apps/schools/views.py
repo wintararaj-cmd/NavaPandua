@@ -7,17 +7,21 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
 
-from .models import School, SchoolSettings, AcademicYear, Holiday
+from .models import School, SchoolSettings, AcademicYear, Holiday, MasterData
 from .serializers import (
     SchoolSerializer, CreateSchoolSerializer, SchoolSettingsSerializer,
-    AcademicYearSerializer, HolidaySerializer
+    AcademicYearSerializer, HolidaySerializer, MasterDataSerializer
 )
 from apps.core.exceptions import NotFoundException, ForbiddenException
+from apps.accounts.permissions import IsSuperAdmin
 
 
 class SchoolListCreateView(generics.ListCreateAPIView):
     """List all schools or create a new one."""
-    permission_classes = [permissions.IsAuthenticated]
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsSuperAdmin()]
+        return [permissions.IsAuthenticated()]
     
     def get_serializer_class(self):
         return CreateSchoolSerializer if self.request.method == 'POST' else SchoolSerializer
@@ -69,3 +73,27 @@ class HolidayListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         school_id = self.kwargs.get('school_id')
         return Holiday.objects.filter(school_id=school_id, is_deleted=False)
+
+
+class MasterDataListCreateView(generics.ListCreateAPIView):
+    """List or create master data items for a school."""
+    serializer_class = MasterDataSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        school_id = self.kwargs.get('school_id')
+        queryset = MasterData.objects.filter(school_id=school_id, is_deleted=False)
+        domain = self.request.query_params.get('domain', None)
+        if domain:
+            queryset = queryset.filter(domain=domain)
+        return queryset
+
+
+class MasterDataDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """Retrieve, update or delete a specific master data item."""
+    serializer_class = MasterDataSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        school_id = self.kwargs.get('school_id')
+        return MasterData.objects.filter(school_id=school_id, is_deleted=False)

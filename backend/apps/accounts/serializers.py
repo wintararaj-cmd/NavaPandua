@@ -12,7 +12,7 @@ from django.utils import timezone
 from datetime import timedelta
 import uuid
 
-from .models import User, UserProfile, EmailVerification, PasswordReset
+from .models import User, UserProfile, StaffProfile, EmailVerification, PasswordReset
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -31,10 +31,72 @@ class UserProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
+class StaffProfileSerializer(serializers.ModelSerializer):
+    """Serializer for staff profile."""
+    class Meta:
+        model = StaffProfile
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+class CreateStaffSerializer(serializers.ModelSerializer):
+    """Serializer for creating a new staff member (User + StaffProfile)."""
+    
+    employee_id = serializers.CharField(max_length=50, write_only=True)
+    department = serializers.CharField(max_length=100, allow_blank=True, required=False, write_only=True)
+    designation = serializers.CharField(max_length=100, allow_blank=True, required=False, write_only=True)
+    joining_date = serializers.DateField(required=False, write_only=True)
+    
+    class Meta:
+        model = User
+        fields = [
+            'email', 'first_name', 'last_name', 'phone', 'role', 'gender',
+            'employee_id', 'department', 'designation', 'joining_date'
+        ]
+        extra_kwargs = {
+            'first_name': {'required': True},
+            'last_name': {'required': True},
+            'email': {'required': True},
+        }
+
+    def create(self, validated_data):
+        # Extract StaffProfile data
+        staff_data = {
+            'employee_id': validated_data.pop('employee_id', ''),
+            'department': validated_data.pop('department', ''),
+            'designation': validated_data.pop('designation', ''),
+            'joining_date': validated_data.pop('joining_date', None),
+        }
+        
+        # Determine username and password
+        email = validated_data['email']
+        validated_data['username'] = email
+        password = User.objects.make_random_password()
+        
+        # Get school from context
+        school = self.context['request'].user.school
+        validated_data['school'] = school
+        
+        user = User.objects.create_user(password=password, **validated_data)
+        
+        # Create standard profile
+        UserProfile.objects.create(user=user, email=user.email, phone=user.phone)
+        
+        # Create staff profile
+        StaffProfile.objects.create(
+            user=user,
+            school=school,
+            **staff_data
+        )
+        
+        # In a real app, email the password to the new staff
+        return user
+
+
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for user model."""
     
     profile = UserProfileSerializer(read_only=True)
+    staff_profile = StaffProfileSerializer(read_only=True)
     full_name = serializers.SerializerMethodField()
     allowed_schools = serializers.SerializerMethodField()
     
@@ -45,7 +107,7 @@ class UserSerializer(serializers.ModelSerializer):
             'full_name', 'phone', 'role', 'is_email_verified',
             'is_phone_verified', 'profile_picture', 'date_of_birth',
             'gender', 'organization', 'school', 'is_active',
-            'date_joined', 'last_login', 'profile', 'allowed_schools'
+            'date_joined', 'last_login', 'profile', 'staff_profile', 'allowed_schools'
         ]
         read_only_fields = [
             'id', 'username', 'is_email_verified', 'is_phone_verified',

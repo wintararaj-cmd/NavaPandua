@@ -18,6 +18,10 @@ from .views import (
     ResendVerificationView,
     UserActivityView,
     SwitchSchoolView,
+    StaffListCreateView,
+    StaffDetailView,
+    UserListCreateView,
+    UserDetailView
 )
 
 app_name = 'accounts'
@@ -43,4 +47,12 @@ urlpatterns = [
     # Email Verification
     path('verify-email/', VerifyEmailView.as_view(), name='verify_email'),
     path('resend-verification/', ResendVerificationView.as_view(), name='resend_verification'),
+    
+    # Staff Management
+    path('staff/', StaffListCreateView.as_view(), name='staff_list_create'),
+    path('staff/<int:pk>/', StaffDetailView.as_view(), name='staff_detail'),
+    
+    # User Management (Manage Users / Activate-Deactivate)
+    path('users/', UserListCreateView.as_view(), name='user_list_create'),
+    path('users/<int:pk>/', UserDetailView.as_view(), name='user_detail'),
 ]

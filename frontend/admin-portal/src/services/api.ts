@@ -18,6 +18,7 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         const token = authStore.getState().accessToken;
+        console.log('Sending request to:', config.url, 'with token:', token ? 'exists' : 'missing');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -73,6 +74,7 @@ api.interceptors.response.use(
             }
 
             try {
+                console.log('Attempting to refresh token...');
                 const response = await axios.post(`${config.apiUrl}/auth/refresh-token/`, {
                     refresh: refreshToken,
                 });

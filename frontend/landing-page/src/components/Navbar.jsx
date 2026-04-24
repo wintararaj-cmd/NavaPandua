@@ -50,6 +50,13 @@ const Navbar = () => {
           {/* CTA Buttons */}
           <div className="nav-cta">
             <a 
+              href="/admission" 
+              className="btn btn-outline-dark"
+              style={{ padding: '10px 20px', fontSize: '0.8rem' }}
+            >
+              Admission
+            </a>
+            <a 
               href={`${import.meta.env.VITE_ADMIN_PORTAL_URL || (import.meta.env.PROD ? 'https://admin.navadaya.in' : 'http://localhost:5173')}/login`} 
               className="btn btn-outline-dark"
               style={{ padding: '10px 20px', fontSize: '0.8rem' }}

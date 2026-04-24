@@ -35,6 +35,19 @@ class School(BaseModel, ContactInfo):
     logo = models.ImageField(upload_to='schools/logos/', null=True, blank=True)
     website = models.URLField(blank=True)
     
+    # Extended Details from ERP
+    slogan = models.CharField(max_length=255, blank=True)
+    udise_number = models.CharField(max_length=50, blank=True)
+    zone = models.CharField(max_length=100, blank=True)
+    funded_by = models.CharField(max_length=100, blank=True)
+    approved_by_authority = models.CharField(max_length=255, blank=True)
+    registration_number = models.CharField(max_length=100, blank=True)
+    geo_location = models.CharField(max_length=255, blank=True)
+    about = models.TextField(blank=True)
+    society = models.CharField(max_length=255, blank=True)
+    parent_organization = models.CharField(max_length=255, blank=True)
+
+    
     # Address
     address_line1 = models.CharField(max_length=255)
     address_line2 = models.CharField(max_length=255, blank=True)
@@ -62,6 +75,11 @@ class School(BaseModel, ContactInfo):
     principal_name = models.CharField(max_length=200, blank=True)
     principal_email = models.EmailField(blank=True)
     principal_phone = models.CharField(max_length=20, blank=True)
+
+    # Chairman/Owner
+    chairman_name = models.CharField(max_length=200, blank=True)
+    chairman_email = models.EmailField(blank=True)
+    chairman_phone = models.CharField(max_length=20, blank=True)
     
     # Settings
     is_active = models.BooleanField(default=True)
@@ -173,6 +191,10 @@ class SchoolSettings(BaseModel):
     teacher_id_prefix = models.CharField(max_length=10, default='TCH')
     id_number_length = models.IntegerField(default=6)
     
+    # ERP Specific Settings
+    policy_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    school_renewal_date = models.DateField(null=True, blank=True)
+    
     class Meta:
         db_table = 'school_settings'
         verbose_name = 'School Settings'
@@ -197,6 +219,11 @@ class AcademicYear(BaseModel):
     start_date = models.DateField()
     end_date = models.DateField()
     is_current = models.BooleanField(default=False)
+    
+    # Session Controls
+    is_closed_for_admission = models.BooleanField(default=False)
+    is_closed_for_advance = models.BooleanField(default=False)
+    is_closed_for_working = models.BooleanField(default=False)
     
     class Meta:
         db_table = 'academic_years'
@@ -254,3 +281,30 @@ class Holiday(BaseModel):
     def is_multi_day(self):
         """Check if holiday spans multiple days."""
         return self.end_date is not None and self.end_date > self.date
+
+
+class MasterData(BaseModel):
+    """
+    Dynamic master data for dropdowns and classifications.
+    Handles Class, ClassSection, ClassGroup, Transport Type, etc.
+    """
+    
+    school = models.ForeignKey(
+        School,
+        on_delete=models.CASCADE,
+        related_name='master_data'
+    )
+    
+    domain = models.CharField(max_length=100)  # e.g., 'Class', 'Fee Category'
+    identifier = models.CharField(max_length=100)  # e.g., 'ClassSection'
+    description = models.CharField(max_length=255)  # e.g., 'A', 'Play', 'LKG'
+    
+    class Meta:
+        db_table = 'master_data'
+        verbose_name = 'Master Data'
+        verbose_name_plural = 'Master Data'
+        ordering = ['domain', 'description']
+        unique_together = [['school', 'domain', 'identifier', 'description']]
+    
+    def __str__(self):
+        return f"{self.domain}: {self.description}"

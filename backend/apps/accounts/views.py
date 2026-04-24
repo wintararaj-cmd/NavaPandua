@@ -20,7 +20,8 @@ from .serializers import (
     ForgotPasswordSerializer,
     ResetPasswordSerializer,
     VerifyEmailSerializer,
-    UpdateProfileSerializer
+    UpdateProfileSerializer,
+    CreateStaffSerializer
 )
 
 
@@ -431,3 +432,71 @@ class SwitchSchoolView(APIView):
 
         except School.DoesNotExist:
             return Response({'error': 'School not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class StaffListCreateView(generics.ListCreateAPIView):
+    """
+    List all staff members or create a new one.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return CreateStaffSerializer
+        return UserSerializer
+        
+    def get_queryset(self):
+        # Return users who have a staff profile
+        return User.objects.filter(
+            staff_profile__isnull=False,
+            school=self.request.user.school
+        ).distinct()
+
+
+class StaffDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update or delete a staff member.
+    """
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return User.objects.filter(
+            staff_profile__isnull=False,
+            school=self.request.user.school
+        )
+
+class UserListCreateView(generics.ListCreateAPIView):
+    """
+    List all users in the school or create a new user.
+    Used for the 'Manage Users' functionality.
+    """
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        queryset = User.objects.filter(school=user.school)
+        
+        # Optional filters
+        role = self.request.query_params.get('role', None)
+        is_active = self.request.query_params.get('is_active', None)
+        
+        if role:
+            queryset = queryset.filter(role=role)
+        if is_active is not None:
+            is_active_bool = is_active.lower() == 'true'
+            queryset = queryset.filter(is_active=is_active_bool)
+            
+        return queryset
+
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update or delete any user.
+    Used for the 'Manage Users' functionality (e.g. Activate/Deactivate Utility).
+    """
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return User.objects.filter(school=self.request.user.school)

@@ -26,7 +26,15 @@ export default function Login() {
             }
         },
         onError: (error: any) => {
-            const message = error.response?.data?.error?.message || 'Login failed';
+            const errorData = error.response?.data?.error;
+            let message = 'Login failed';
+            
+            if (errorData?.details?.non_field_errors) {
+                message = errorData.details.non_field_errors[0];
+            } else if (errorData?.message) {
+                message = errorData.message;
+            }
+            
             toast.error(message);
         },
     });

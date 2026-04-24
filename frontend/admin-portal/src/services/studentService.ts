@@ -6,39 +6,72 @@ export interface Student {
     roll_number?: string;
     organization: string;
     school: string;
-    class_assigned: string;
+    current_class: string;
     section: string;
     first_name: string;
+    middle_name?: string;
     last_name: string;
     email?: string;
     phone?: string;
     date_of_birth: string;
     gender: 'MALE' | 'FEMALE' | 'OTHER';
+    place_of_birth?: string;
+    mother_tongue?: string;
+    nationality?: string;
+    religion?: string;
+    caste?: 'SC' | 'ST' | 'OBC' | 'GENERAL';
     blood_group?: string;
     address?: string;
     city?: string;
     state?: string;
     postal_code?: string;
     country?: string;
+    
+    // Father Info
     father_name: string;
     father_phone: string;
     father_email?: string;
+    father_qualification?: string;
+    father_college?: string;
     father_occupation?: string;
+    father_organisation?: string;
+    father_designation?: string;
+    father_income?: number;
+    father_office_address?: string;
+    
+    // Mother Info
     mother_name: string;
     mother_phone: string;
     mother_email?: string;
-    mother_occupation?: string;
-    guardian_name?: string;
-    guardian_phone?: string;
-    guardian_email?: string;
-    guardian_relation?: string;
-    emergency_contact_name?: string;
-    emergency_contact_phone?: string;
-    emergency_contact_relation?: string;
-    previous_school?: string;
-    previous_class?: string;
+    mother_qualification?: string;
+    mother_college?: string;
+    
+    // Previous School Info
+    previous_school_name?: string;
+    previous_school_address?: string;
+    previous_school_class?: string;
+    previous_school_board?: string;
+    previous_school_medium?: string;
+    
+    // Other Info
+    is_single_parent?: boolean;
+    legal_guardian?: string;
+    second_language?: string;
+    third_language?: string;
+    
     admission_date: string;
-    is_active: boolean;
+    is_active?: boolean;
+    status: 'ACTIVE' | 'INACTIVE' | 'LEFT' | 'GRADUATED';
+    fee_category?: string;
+    house?: string;
+    transport_type?: string;
+    fee_payment_mode?: string;
+    
+    // Photos
+    photo?: string;
+    father_photo?: string;
+    mother_photo?: string;
+    
     class_details?: {
         id: string;
         name: string;
@@ -47,45 +80,23 @@ export interface Student {
         id: string;
         name: string;
     };
+    siblings?: StudentSibling[];
 }
 
-export interface StudentFormData {
-    admission_number: string;
-    organization: string;
-    school: string;
-    class_assigned: string;
-    section: string;
-    first_name: string;
-    last_name: string;
-    email?: string;
-    phone?: string;
-    date_of_birth: string;
-    gender: 'MALE' | 'FEMALE' | 'OTHER';
-    blood_group?: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    postal_code?: string;
-    country?: string;
-    father_name: string;
-    father_phone: string;
-    father_email?: string;
-    father_occupation?: string;
-    mother_name: string;
-    mother_phone: string;
-    mother_email?: string;
-    mother_occupation?: string;
-    guardian_name?: string;
-    guardian_phone?: string;
-    guardian_email?: string;
-    guardian_relation?: string;
-    emergency_contact_name?: string;
-    emergency_contact_phone?: string;
-    emergency_contact_relation?: string;
-    previous_school?: string;
-    previous_class?: string;
-    admission_date: string;
-    is_active: boolean;
+export interface StudentSibling {
+    id?: string;
+    name: string;
+    class_name?: string;
+    section?: string;
+    roll?: string;
+    registration_number?: string;
+}
+
+export interface StudentFormData extends Omit<Student, 'id' | 'admission_number' | 'organization' | 'school' | 'class_details' | 'section_details' | 'siblings'> {
+    admission_number?: string; // Optional during creation if auto-generated
+    organization?: string;
+    school?: string;
+    siblings?: StudentSibling[];
 }
 
 export const studentService = {
@@ -111,6 +122,26 @@ export const studentService = {
 
     deleteStudent: async (id: string) => {
         const response = await api.delete(`/students/${id}/`);
+        return response.data;
+    },
+
+    getPromotions: async (studentId: string) => {
+        const response = await api.get('/students/promotions/', { params: { student: studentId } });
+        return response.data;
+    },
+
+    promoteStudent: async (data: any) => {
+        const response = await api.post('/students/promotions/', data);
+        return response.data;
+    },
+
+    getSLCs: async (studentId: string) => {
+        const response = await api.get('/students/slc/', { params: { student: studentId } });
+        return response.data;
+    },
+
+    generateSLC: async (data: any) => {
+        const response = await api.post('/students/slc/', data);
         return response.data;
     }
 };

@@ -1,7 +1,7 @@
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import AdmissionEnquiryViewSet, AdmissionApplicationViewSet
+from .views import AdmissionEnquiryViewSet, AdmissionApplicationViewSet, PublicAdmissionView
 
 app_name = 'admissions'
 
@@ -11,4 +11,5 @@ router.register(r'applications', AdmissionApplicationViewSet, basename='applicat
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('public/', PublicAdmissionView.as_view(), name='public_admission'),
 ]

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save } from 'lucide-react';
-import type { Teacher, TeacherFormData } from '../../services/teacherService';
+import type { Staff as Teacher, StaffFormData as TeacherFormData } from '../../services/teacherService';
 
 interface TeacherModalProps {
     isOpen: boolean;
@@ -18,15 +18,14 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
     isLoading
 }) => {
     const [formData, setFormData] = useState<TeacherFormData>({
-        user: {
-            email: '',
-            first_name: '',
-            last_name: '',
-            phone: '',
-            password: '',
-            gender: '',
-            date_of_birth: ''
-        },
+        email: '',
+        first_name: '',
+        last_name: '',
+        phone: '',
+        password: '',
+        gender: 'MALE',
+        date_of_birth: '',
+        role: 'TEACHER',
         employee_id: '',
         department: '',
         designation: '',
@@ -37,14 +36,13 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
     useEffect(() => {
         if (teacher) {
             setFormData({
-                user: {
-                    email: teacher.user.email,
-                    first_name: teacher.user.first_name,
-                    last_name: teacher.user.last_name,
-                    phone: teacher.user.phone,
-                    gender: teacher.user.gender,
-                    date_of_birth: teacher.user.date_of_birth || ''
-                },
+                email: teacher.user.email,
+                first_name: teacher.user.first_name,
+                last_name: teacher.user.last_name,
+                phone: teacher.user.phone,
+                gender: teacher.user.gender || 'MALE',
+                date_of_birth: teacher.user.date_of_birth || '',
+                role: teacher.user.role || 'TEACHER',
                 employee_id: teacher.employee_id,
                 department: teacher.department,
                 designation: teacher.designation,
@@ -53,15 +51,14 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
             });
         } else {
             setFormData({
-                user: {
-                    email: '',
-                    first_name: '',
-                    last_name: '',
-                    phone: '',
-                    password: 'teacher123', // Default password suggestion
-                    gender: 'MALE',
-                    date_of_birth: ''
-                },
+                email: '',
+                first_name: '',
+                last_name: '',
+                phone: '',
+                password: 'staff123',
+                gender: 'MALE',
+                date_of_birth: '',
+                role: 'TEACHER',
                 employee_id: '',
                 department: '',
                 designation: '',
@@ -74,17 +71,6 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         await onSubmit(formData);
-    };
-
-    const handleUserChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            user: {
-                ...prev.user,
-                [name]: value
-            }
-        }));
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -111,7 +97,7 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                         <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-lg font-medium leading-6 text-gray-900">
-                                    {teacher ? 'Edit Teacher' : 'Add New Teacher'}
+                                    {teacher ? 'Edit Staff Member' : 'Add New Staff Member'}
                                 </h3>
                                 <button
                                     type="button"
@@ -132,8 +118,8 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                             <input
                                                 type="text"
                                                 name="first_name"
-                                                value={formData.user.first_name}
-                                                onChange={handleUserChange}
+                                                value={formData.first_name}
+                                                onChange={handleChange}
                                                 required
                                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                             />
@@ -143,8 +129,8 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                             <input
                                                 type="text"
                                                 name="last_name"
-                                                value={formData.user.last_name}
-                                                onChange={handleUserChange}
+                                                value={formData.last_name}
+                                                onChange={handleChange}
                                                 required
                                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                             />
@@ -153,8 +139,8 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                             <label className="block text-sm font-medium text-gray-700">Gender</label>
                                             <select
                                                 name="gender"
-                                                value={formData.user.gender}
-                                                onChange={handleUserChange}
+                                                value={formData.gender}
+                                                onChange={handleChange}
                                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                             >
                                                 <option value="MALE">Male</option>
@@ -163,12 +149,29 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                             </select>
                                         </div>
                                         <div>
+                                            <label className="block text-sm font-medium text-gray-700">Staff Role</label>
+                                            <select
+                                                name="role"
+                                                value={formData.role}
+                                                onChange={handleChange}
+                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-bold text-indigo-600"
+                                            >
+                                                <option value="TEACHER">Teacher</option>
+                                                <option value="ACCOUNTANT">Accountant</option>
+                                                <option value="LIBRARIAN">Librarian</option>
+                                                <option value="HR">HR Manager</option>
+                                                <option value="TRANSPORT_MANAGER">Transport Manager</option>
+                                                <option value="DRIVER">Driver</option>
+                                                <option value="SCHOOL_ADMIN">School Admin</option>
+                                            </select>
+                                        </div>
+                                        <div>
                                             <label className="block text-sm font-medium text-gray-700">Email</label>
                                             <input
                                                 type="email"
                                                 name="email"
-                                                value={formData.user.email}
-                                                onChange={handleUserChange}
+                                                value={formData.email}
+                                                onChange={handleChange}
                                                 required
                                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                             />
@@ -178,8 +181,8 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                             <input
                                                 type="text"
                                                 name="phone"
-                                                value={formData.user.phone}
-                                                onChange={handleUserChange}
+                                                value={formData.phone}
+                                                onChange={handleChange}
                                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                             />
                                         </div>
@@ -188,23 +191,22 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                             <input
                                                 type="date"
                                                 name="date_of_birth"
-                                                value={formData.user.date_of_birth}
-                                                onChange={handleUserChange}
+                                                value={formData.date_of_birth}
+                                                onChange={handleChange}
                                                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                             />
                                         </div>
                                         {!teacher && (
-                                            <div className="col-span-1 md:col-span-3">
+                                            <div>
                                                 <label className="block text-sm font-medium text-gray-700">Password</label>
                                                 <input
                                                     type="password"
                                                     name="password"
-                                                    value={formData.user.password}
-                                                    onChange={handleUserChange}
-                                                    placeholder="Leave empty for default (teacher123)"
+                                                    value={formData.password}
+                                                    onChange={handleChange}
+                                                    placeholder="Default: staff123"
                                                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                                 />
-                                                <p className="text-xs text-gray-500 mt-1">Default is teacher123</p>
                                             </div>
                                         )}
                                     </div>
@@ -285,7 +287,7 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                 ) : (
                                     <>
                                         <Save className="h-4 w-4 mr-2" />
-                                        Save Teacher
+                                        Save Staff Member
                                     </>
                                 )}
                             </button>

@@ -13,9 +13,20 @@ class Organization(BaseModel, ContactInfo):
     """
     
     name = models.CharField(max_length=255, unique=True)
-    subdomain = models.SlugField(max_length=100, unique=True)
+    subdomain = models.CharField(max_length=100, unique=True)
     logo = models.ImageField(upload_to='organizations/logos/', null=True, blank=True)
     website = models.URLField(blank=True)
+    
+    # Subscription
+    subscription_plan = models.CharField(
+        max_length=20,
+        choices=[
+            ('BASIC', 'Basic'),
+            ('PREMIUM', 'Premium'),
+            ('ENTERPRISE', 'Enterprise'),
+        ],
+        default='BASIC'
+    )
     
     # Address
     address_line1 = models.CharField(max_length=255)

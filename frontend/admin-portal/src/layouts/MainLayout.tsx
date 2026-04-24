@@ -24,8 +24,10 @@ export default function MainLayout() {
 
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-        { icon: Building2, label: 'Organizations', path: '/organizations' },
-        { icon: School, label: 'Schools', path: '/schools' },
+        ...(user?.role === 'SUPER_ADMIN' ? [
+            { icon: Building2, label: 'Organizations', path: '/organizations' },
+            { icon: School, label: 'Schools', path: '/schools' },
+        ] : []),
         { icon: UserPlus, label: 'Admissions', path: '/admissions' },
         { icon: GraduationCap, label: terms.studentsLabel, path: '/students' },
         { icon: Users, label: 'Teachers', path: '/teachers' },

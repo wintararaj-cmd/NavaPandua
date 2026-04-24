@@ -49,6 +49,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const user = authStore((state) => state.user);
+
+  if (user?.role !== 'SUPER_ADMIN') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -67,8 +77,8 @@ function App() {
             }
           >
             <Route index element={<Dashboard />} />
-            <Route path="organizations" element={<Organizations />} />
-            <Route path="schools" element={<Schools />} />
+            <Route path="organizations" element={<AdminRoute><Organizations /></AdminRoute>} />
+            <Route path="schools" element={<AdminRoute><Schools /></AdminRoute>} />
             <Route path="admissions" element={<Admissions />} />
             <Route path="students" element={<Students />} />
             <Route path="teachers" element={<Teachers />} />

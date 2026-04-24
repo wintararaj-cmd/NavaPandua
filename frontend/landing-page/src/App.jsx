@@ -1,15 +1,17 @@
 import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import FocusAreas from './components/FocusAreas';
 import Impact from './components/Impact';
 import Footer from './components/Footer';
+import AdmissionForm from './components/AdmissionForm';
 import { Heart } from 'lucide-react';
 
-function App() {
+function LandingPage() {
   return (
-    <div className="App">
-      <Navbar />
+    <>
       <Hero />
       <FocusAreas />
       <Impact />
@@ -34,9 +36,23 @@ function App() {
           </div>
         </div>
       </section>
+    </>
+  );
+}
 
-      <Footer />
-    </div>
+function App() {
+  return (
+    <BrowserRouter>
+      <div className="App">
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/admission" element={<AdmissionForm />} />
+        </Routes>
+        <Footer />
+        <Toaster position="top-right" />
+      </div>
+    </BrowserRouter>
   );
 }
 
