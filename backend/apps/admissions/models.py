@@ -65,6 +65,8 @@ class AdmissionApplication(BaseModel):
         related_name='applications'
     )
     application_number = models.CharField(max_length=50, unique=True)
+    receipt_no = models.CharField(max_length=50, blank=True, null=True)
+    admission_date = models.DateField(null=True, blank=True)
     
     # Student Details
     first_name = models.CharField(max_length=100)
@@ -84,19 +86,31 @@ class AdmissionApplication(BaseModel):
     father_phone = models.CharField(max_length=20)
     father_email = models.EmailField(blank=True)
     father_qualification = models.CharField(max_length=100, blank=True)
+    father_college = models.CharField(max_length=200, blank=True)
+    father_occupation_type = models.CharField(max_length=50, blank=True) # Govt, Pvt, etc.
     father_occupation = models.CharField(max_length=100, blank=True)
+    father_organisation = models.CharField(max_length=200, blank=True)
+    father_designation = models.CharField(max_length=100, blank=True)
     father_income = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    father_office_address = models.TextField(blank=True)
     
     # Parent Details - Mother
     mother_name = models.CharField(max_length=100)
     mother_phone = models.CharField(max_length=20)
     mother_email = models.EmailField(blank=True)
     mother_qualification = models.CharField(max_length=100, blank=True)
+    mother_college = models.CharField(max_length=200, blank=True)
+    mother_associated_with = models.TextField(blank=True) # JSON or comma separated
     
     address = models.TextField()
     city = models.CharField(max_length=100, blank=True)
     state = models.CharField(max_length=100, blank=True)
+    country = models.CharField(max_length=100, blank=True)
     postal_code = models.CharField(max_length=20, blank=True)
+    
+    primary_contact_person = models.CharField(max_length=100, blank=True)
+    primary_contact_phone = models.CharField(max_length=20, blank=True)
+    relationship_with_student = models.CharField(max_length=50, blank=True)
     
     # Academic Details
     target_class = models.ForeignKey(
@@ -105,14 +119,31 @@ class AdmissionApplication(BaseModel):
         related_name='student_applications'
     )
     previous_school_name = models.CharField(max_length=200, blank=True)
+    previous_school_address = models.TextField(blank=True)
+    previous_school_city = models.CharField(max_length=100, blank=True)
+    previous_school_state = models.CharField(max_length=100, blank=True)
+    previous_school_country = models.CharField(max_length=100, blank=True)
+    previous_school_pincode = models.CharField(max_length=20, blank=True)
+    previous_school_principle_name = models.CharField(max_length=100, blank=True)
     previous_school_board = models.CharField(max_length=100, blank=True)
     previous_school_class = models.CharField(max_length=50, blank=True)
+    previous_school_medium = models.CharField(max_length=50, blank=True)
     
     # Other
     is_single_parent = models.BooleanField(default=False)
     legal_guardian = models.CharField(max_length=100, blank=True)
+    is_guardian_father = models.BooleanField(default=False)
+    is_guardian_mother = models.BooleanField(default=False)
+    
+    category = models.CharField(max_length=20, default='GENERAL') # General, Staff
+    staff_name = models.CharField(max_length=100, blank=True)
+    staff_id = models.CharField(max_length=50, blank=True)
+    
     second_language = models.CharField(max_length=50, blank=True)
     third_language = models.CharField(max_length=50, blank=True)
+    
+    # Academic Performance JSON
+    academic_performance = models.TextField(blank=True) 
     
     # Photos
     photo = models.ImageField(upload_to='admissions/photos/', null=True, blank=True)

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, User, Shield, Phone, Mail, MapPin, GraduationCap, Building2, BookOpen, FileText, Languages, UserCheck, Heart } from 'lucide-react';
 import type { Student, StudentFormData, StudentSibling } from '../../services/studentService';
@@ -47,12 +48,21 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
         postal_code: '',
         country: 'India',
         
+        primary_contact_person: '',
+        primary_contact_phone: '',
+        relationship_with_student: '',
+
+        category: 'GENERAL',
+        staff_name: '',
+        staff_id: '',
+
         // Father
         father_name: '',
         father_phone: '',
         father_email: '',
         father_qualification: '',
         father_college: '',
+        father_occupation_type: 'PRIVATE',
         father_occupation: '',
         father_organisation: '',
         father_designation: '',
@@ -65,10 +75,16 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
         mother_email: '',
         mother_qualification: '',
         mother_college: '',
+        mother_associated_with: '',
         
         // Previous School
         previous_school_name: '',
         previous_school_address: '',
+        previous_school_city: '',
+        previous_school_state: '',
+        previous_school_country: 'India',
+        previous_school_pincode: '',
+        previous_school_principle_name: '',
         previous_school_class: '',
         previous_school_board: '',
         previous_school_medium: '',
@@ -76,6 +92,8 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
         // Other
         is_single_parent: false,
         legal_guardian: '',
+        is_guardian_father: false,
+        is_guardian_mother: false,
         second_language: '',
         third_language: '',
         admission_date: new Date().toISOString().split('T')[0],
@@ -191,11 +209,21 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
             state: '',
             postal_code: '',
             country: 'India',
+            
+            primary_contact_person: '',
+            primary_contact_phone: '',
+            relationship_with_student: '',
+            
+            category: 'GENERAL',
+            staff_name: '',
+            staff_id: '',
+
             father_name: '',
             father_phone: '',
             father_email: '',
             father_qualification: '',
             father_college: '',
+            father_occupation_type: 'PRIVATE',
             father_occupation: '',
             father_organisation: '',
             father_designation: '',
@@ -206,13 +234,21 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
             mother_email: '',
             mother_qualification: '',
             mother_college: '',
+            mother_associated_with: '',
             previous_school_name: '',
             previous_school_address: '',
+            previous_school_city: '',
+            previous_school_state: '',
+            previous_school_country: 'India',
+            previous_school_pincode: '',
+            previous_school_principle_name: '',
             previous_school_class: '',
             previous_school_board: '',
             previous_school_medium: '',
             is_single_parent: false,
             legal_guardian: '',
+            is_guardian_father: false,
+            is_guardian_mother: false,
             second_language: '',
             third_language: '',
             admission_date: new Date().toISOString().split('T')[0],
@@ -453,11 +489,34 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
                                         {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(b => <option key={b} value={b}>{b}</option>)}
                                     </select>
                                 </div>
-                                <div className="col-span-full">
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Student Photo</label>
-                                    <input type="file" name="photo" onChange={handleFileChange} accept="image/*" className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-2xl outline-none text-xs" />
-                                    {student?.photo && !files.photo && <p className="text-[10px] text-indigo-600 mt-1 font-bold">Current: {student.photo.split('/').pop()}</p>}
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-gray-50">
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Candidate Category</label>
+                                    <select name="category" value={formData.category} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none">
+                                        <option value="GENERAL">General</option>
+                                        <option value="STAFF">Staff Child</option>
+                                    </select>
                                 </div>
+                                {formData.category === 'STAFF' && (
+                                    <>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Staff Name</label>
+                                            <input type="text" name="staff_name" value={formData.staff_name} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Staff ID</label>
+                                            <input type="text" name="staff_id" value={formData.staff_id} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="col-span-full">
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Student Photo</label>
+                                <input type="file" name="photo" onChange={handleFileChange} accept="image/*" className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-2xl outline-none text-xs" />
+                                {student?.photo && !files.photo && <p className="text-[10px] text-indigo-600 mt-1 font-bold">Current: {student.photo.split('/').pop()}</p>}
                             </div>
                         </div>
                     )}
@@ -484,7 +543,17 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
                                         <input type="text" name="father_college" value={formData.father_college} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Occupation Type</label>
+                                        <select name="father_occupation_type" value={formData.father_occupation_type} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none">
+                                            <option value="GOVT">Govt</option>
+                                            <option value="PRIVATE">Private</option>
+                                            <option value="BUSINESS">Business</option>
+                                            <option value="PROFESSIONAL">Professional</option>
+                                            <option value="OTHERS">Others</option>
+                                        </select>
+                                    </div>
                                     <div>
                                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Occupation</label>
                                         <input type="text" name="father_occupation" value={formData.father_occupation} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
@@ -579,8 +648,19 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
                                     <input type="text" name="previous_school_medium" value={formData.previous_school_medium} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
                                 </div>
                                 <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Principle's Name</label>
+                                    <input type="text" name="previous_school_principle_name" value={formData.previous_school_principle_name} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="col-span-full">
                                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">School Address</label>
-                                    <input type="text" name="previous_school_address" value={formData.previous_school_address} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
+                                    <textarea name="previous_school_address" value={formData.previous_school_address} onChange={handleChange} rows={2} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none resize-none" />
+                                </div>
+                                <div className="grid grid-cols-3 gap-4 col-span-full">
+                                    <input type="text" name="previous_school_city" placeholder="City" value={formData.previous_school_city} onChange={handleChange} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
+                                    <input type="text" name="previous_school_state" placeholder="State" value={formData.previous_school_state} onChange={handleChange} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
+                                    <input type="text" name="previous_school_pincode" placeholder="PIN" value={formData.previous_school_pincode} onChange={handleChange} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
                                 </div>
                             </div>
                         </div>
@@ -605,18 +685,39 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
                                 </div>
                                 <div className="space-y-4">
                                     <h4 className="text-xs font-black text-indigo-600 uppercase tracking-[0.2em]">Guardianship</h4>
-                                    <div className="flex items-center gap-4 py-3">
+                                    <div className="flex items-center gap-4 py-1">
                                         <label className="flex items-center gap-2 cursor-pointer group">
                                             <input type="checkbox" name="is_single_parent" checked={formData.is_single_parent} onChange={handleChange} className="w-5 h-5 rounded-lg border-2 border-gray-200 text-indigo-600 focus:ring-indigo-500" />
                                             <span className="text-xs font-bold text-gray-600 group-hover:text-indigo-600 transition-colors">Single Parent</span>
                                         </label>
                                     </div>
                                     {formData.is_single_parent && (
-                                        <div>
-                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Legal Guardian Name</label>
-                                            <input type="text" name="legal_guardian" value={formData.legal_guardian} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
+                                        <div className="space-y-3">
+                                            <input type="text" name="legal_guardian" placeholder="Legal Guardian Name" value={formData.legal_guardian} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
+                                            <div className="flex gap-6">
+                                                <label className="flex items-center gap-2 text-xs font-bold text-gray-500"><input type="checkbox" name="is_guardian_father" checked={formData.is_guardian_father} onChange={handleChange} /> Father</label>
+                                                <label className="flex items-center gap-2 text-xs font-bold text-gray-500"><input type="checkbox" name="is_guardian_mother" checked={formData.is_guardian_mother} onChange={handleChange} /> Mother</label>
+                                            </div>
                                         </div>
                                     )}
+                                </div>
+                            </div>
+                            
+                            <div className="pt-6 border-t border-gray-100 space-y-4">
+                                <h4 className="text-xs font-black text-indigo-600 uppercase tracking-[0.2em]">Primary Contact for Communication</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Contact Person</label>
+                                        <input type="text" name="primary_contact_person" value={formData.primary_contact_person} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Relationship</label>
+                                        <input type="text" name="relationship_with_student" value={formData.relationship_with_student} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Mobile No</label>
+                                        <input type="tel" name="primary_contact_phone" value={formData.primary_contact_phone} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
+                                    </div>
                                 </div>
                             </div>
 

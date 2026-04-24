@@ -48,6 +48,11 @@ class Student(BaseModel):
     # Previous School Info
     previous_school_name = models.CharField(max_length=255, blank=True)
     previous_school_address = models.TextField(blank=True)
+    previous_school_city = models.CharField(max_length=100, blank=True)
+    previous_school_state = models.CharField(max_length=100, blank=True)
+    previous_school_country = models.CharField(max_length=100, blank=True)
+    previous_school_pincode = models.CharField(max_length=20, blank=True)
+    previous_school_principle_name = models.CharField(max_length=100, blank=True)
     previous_school_class = models.CharField(max_length=50, blank=True)
     previous_school_board = models.CharField(max_length=100, blank=True)
     previous_school_medium = models.CharField(max_length=50, blank=True)
@@ -63,6 +68,7 @@ class Student(BaseModel):
     father_designation = models.CharField(max_length=100, blank=True)
     father_income = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     father_office_address = models.TextField(blank=True)
+    father_occupation_type = models.CharField(max_length=50, blank=True)
     
     # Family Info - Mother
     mother_name = models.CharField(max_length=100)
@@ -70,12 +76,26 @@ class Student(BaseModel):
     mother_email = models.EmailField(blank=True)
     mother_qualification = models.CharField(max_length=100, blank=True)
     mother_college = models.CharField(max_length=255, blank=True)
+    mother_associated_with = models.TextField(blank=True)
     
     # Other Info
     is_single_parent = models.BooleanField(default=False)
     legal_guardian = models.CharField(max_length=100, blank=True)
+    is_guardian_father = models.BooleanField(default=False)
+    is_guardian_mother = models.BooleanField(default=False)
+    
+    category = models.CharField(max_length=20, default='GENERAL')
+    staff_name = models.CharField(max_length=100, blank=True)
+    staff_id = models.CharField(max_length=50, blank=True)
+    
+    primary_contact_person = models.CharField(max_length=100, blank=True)
+    primary_contact_phone = models.CharField(max_length=20, blank=True)
+    relationship_with_student = models.CharField(max_length=50, blank=True)
+    
     second_language = models.CharField(max_length=50, blank=True)
     third_language = models.CharField(max_length=50, blank=True)
+    
+    academic_performance = models.TextField(blank=True)
     
     # Photos
     photo = models.ImageField(upload_to='students/photos/', null=True, blank=True)

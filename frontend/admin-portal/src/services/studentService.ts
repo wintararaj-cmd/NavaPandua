@@ -27,12 +27,21 @@ export interface Student {
     postal_code?: string;
     country?: string;
     
+    primary_contact_person?: string;
+    primary_contact_phone?: string;
+    relationship_with_student?: string;
+
+    category: 'GENERAL' | 'STAFF';
+    staff_name?: string;
+    staff_id?: string;
+
     // Father Info
     father_name: string;
     father_phone: string;
     father_email?: string;
     father_qualification?: string;
     father_college?: string;
+    father_occupation_type?: 'GOVT' | 'PRIVATE' | 'BUSINESS' | 'PROFESSIONAL' | 'OTHERS';
     father_occupation?: string;
     father_organisation?: string;
     father_designation?: string;
@@ -45,10 +54,16 @@ export interface Student {
     mother_email?: string;
     mother_qualification?: string;
     mother_college?: string;
+    mother_associated_with?: string;
     
     // Previous School Info
     previous_school_name?: string;
     previous_school_address?: string;
+    previous_school_city?: string;
+    previous_school_state?: string;
+    previous_school_country?: string;
+    previous_school_pincode?: string;
+    previous_school_principle_name?: string;
     previous_school_class?: string;
     previous_school_board?: string;
     previous_school_medium?: string;
@@ -56,6 +71,8 @@ export interface Student {
     // Other Info
     is_single_parent?: boolean;
     legal_guardian?: string;
+    is_guardian_father?: boolean;
+    is_guardian_mother?: boolean;
     second_language?: string;
     third_language?: string;
     
