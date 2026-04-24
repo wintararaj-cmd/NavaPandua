@@ -75,7 +75,8 @@ class DashboardStatsView(APIView):
         if attendance_stats['total_marked'] > 0:
              attendance_stats['percentage'] = round((attendance_stats['present'] + attendance_stats['late']) / attendance_stats['total_marked'] * 100, 1)
 
-        # 3. Monthly Fee Collection
+        # 3. Fee Collection
+        today_collection = FeePayment.objects.filter(school=school, payment_date=timezone.now().date()).aggregate(total=Sum('amount_paid'))['total'] or 0
         monthly_collection = FeePayment.objects.filter(**payment_filter).aggregate(total=Sum('amount_paid'))['total'] or 0
 
         # 4. Attendance Trend (Last 7 Days)
@@ -111,6 +112,7 @@ class DashboardStatsView(APIView):
                 'attendance_today': attendance_stats,
                 'attendance_trend': attendance_trend,
                 'finance': {
+                    'today_collection': today_collection,
                     'monthly_collection': monthly_collection,
                     'currency': 'INR'
                 }

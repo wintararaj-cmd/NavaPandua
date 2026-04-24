@@ -42,5 +42,12 @@ export const attendanceService = {
     updateAttendance: async (id: string, type: 'students' | 'teachers', data: Partial<Attendance>) => {
         const response = await api.patch(`/attendance/${type}/${id}/`, data);
         return response.data;
+    },
+
+    getMonthlyReport: async (year: number, month: number, classId: string) => {
+        const response = await api.get('/attendance/students/monthly-report/', {
+            params: { year, month, class_id: classId }
+        });
+        return response.data;
     }
 };

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, DollarSign, FileText, Settings, History, CreditCard, Layers, Tag } from 'lucide-react';
-import { feeService, type FeeGroup, type FeeType, type FeeMaster, type FeeAllocation } from '../services/feeService';
+import { Plus, Search, DollarSign, FileText, Settings, History, CreditCard, Layers, Tag, Download } from 'lucide-react';
+import { feeService, type FeeGroup, type FeeType, type FeeMaster, type FeeAllocation, type FeePayment } from '../services/feeService';
 import { studentService } from '../services/studentService';
 import FeeMasterModal from '../components/fees/FeeMasterModal';
 import FeeGroupModal from '../components/fees/FeeGroupModal';
@@ -30,12 +30,38 @@ export default function Fees() {
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [selectedStudent, setSelectedStudent] = useState<any>(null);
     const [studentFees, setStudentFees] = useState<FeeAllocation[]>([]);
+    const [studentSubTab, setStudentSubTab] = useState<'dues' | 'ledger'>('dues');
+    const [ledger, setLedger] = useState<any[]>([]);
+    const [payments, setPayments] = useState<any[]>([]);
 
     useEffect(() => {
         if (activeTab === 'config') {
             fetchConfigData();
+        } else if (activeTab === 'history') {
+            fetchPayments();
         }
     }, [activeTab]);
+
+    const fetchPayments = async () => {
+        try {
+            setLoading(true);
+            const data = await feeService.getPayments();
+            setPayments(data.results || []);
+        } catch {
+            toast.error('Failed to fetch payments');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchStudentLedger = async (studentId: string) => {
+        try {
+            const data = await feeService.getStudentLedger(studentId);
+            setLedger(data || []);
+        } catch {
+            toast.error('Failed to fetch ledger');
+        }
+    };
 
     const fetchConfigData = async () => {
         try {
@@ -161,6 +187,7 @@ export default function Fees() {
                                                         onClick={() => {
                                                             setSelectedStudent(student);
                                                             fetchStudentFees(student.id);
+                                                            fetchStudentLedger(student.id);
                                                         }}
                                                         className="text-indigo-600 hover:text-indigo-900 font-medium"
                                                     >
@@ -198,60 +225,114 @@ export default function Fees() {
                                     </button>
                                 </div>
 
-                                <div className="border rounded-md overflow-hidden">
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fee Type</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paid</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Balance</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200">
-                                            {studentFees.map((fee) => (
-                                                <tr key={fee.id}>
-                                                    <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{fee.fee_type_name}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{fee.due_date}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">₹{fee.amount}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">₹{fee.paid_amount}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-bold">₹{fee.remaining_amount}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${fee.status === 'PAID' ? 'bg-green-100 text-green-800' :
-                                                            fee.status === 'PARTIAL' ? 'bg-yellow-100 text-yellow-800' :
-                                                                'bg-red-100 text-red-800'
-                                                            }`}>
-                                                            {fee.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                                        {fee.status !== 'PAID' && (
-                                                            <button
-                                                                className="text-white bg-indigo-600 px-3 py-1 rounded hover:bg-indigo-700 transition shadow-sm font-bold text-xs uppercase"
-                                                                onClick={() => {
-                                                                    setSelectedAllocation(fee);
-                                                                    setShowPaymentModal(true);
-                                                                }}
-                                                            >
-                                                                Pay Now
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                            {studentFees.length === 0 && (
-                                                <tr>
-                                                    <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
-                                                        No fees allocated to this student.
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
+                                <div className="flex border-b">
+                                    <button 
+                                        onClick={() => setStudentSubTab('dues')}
+                                        className={`px-6 py-2 font-bold text-sm ${studentSubTab === 'dues' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500'}`}
+                                    >
+                                        PENDING DUES
+                                    </button>
+                                    <button 
+                                        onClick={() => setStudentSubTab('ledger')}
+                                        className={`px-6 py-2 font-bold text-sm ${studentSubTab === 'ledger' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500'}`}
+                                    >
+                                        ACCOUNT LEDGER
+                                    </button>
                                 </div>
+
+                                {studentSubTab === 'dues' ? (
+                                    <div className="border rounded-md overflow-hidden">
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fee Type</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Due Date</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Paid</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Balance</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-200">
+                                                {studentFees.map((fee) => (
+                                                    <tr key={fee.id}>
+                                                        <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{fee.fee_type_name}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{fee.due_date}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">₹{fee.amount}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">₹{fee.paid_amount}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-bold">₹{fee.remaining_amount}</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${fee.status === 'PAID' ? 'bg-green-100 text-green-800' :
+                                                                fee.status === 'PARTIAL' ? 'bg-yellow-100 text-yellow-800' :
+                                                                    'bg-red-100 text-red-800'
+                                                                }`}>
+                                                                {fee.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                                            {fee.status !== 'PAID' && (
+                                                                <button
+                                                                    className="text-white bg-indigo-600 px-3 py-1 rounded hover:bg-indigo-700 transition shadow-sm font-bold text-xs uppercase"
+                                                                    onClick={() => {
+                                                                        setSelectedAllocation(fee);
+                                                                        setShowPaymentModal(true);
+                                                                    }}
+                                                                >
+                                                                    Pay Now
+                                                                </button>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                {studentFees.length === 0 && (
+                                                    <tr>
+                                                        <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
+                                                            No fees allocated to this student.
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="border rounded-md overflow-hidden">
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
+                                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Debit (₹)</th>
+                                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Credit (₹)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-200">
+                                                {ledger.map((entry, idx) => (
+                                                    <tr key={idx}>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                            {new Date(entry.date).toLocaleDateString()}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <span className={`px-2 py-1 text-[10px] font-black rounded ${entry.type === 'CHARGE' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                                                                {entry.type}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-gray-900 font-medium">
+                                                            {entry.description}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right text-sm font-bold text-red-600">
+                                                            {entry.type === 'CHARGE' ? entry.amount : '-'}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right text-sm font-bold text-green-600">
+                                                            {entry.type === 'PAYMENT' ? entry.amount : '-'}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -300,17 +381,33 @@ export default function Fees() {
                                         <span className="text-3xl font-black text-gray-900">₹{master.amount}</span>
                                         <span className="text-gray-400 text-sm font-medium">per student</span>
                                     </div>
-                                    <div className="pt-4 border-t border-gray-50 space-y-2">
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                                            <FileText className="h-4 w-4 text-gray-400" />
-                                            <span>Due: <span className="font-semibold text-gray-900">{master.due_date}</span></span>
-                                        </div>
-                                        {master.fine_type !== 'NONE' && (
+                                    <div className="pt-4 border-t border-gray-50 space-y-4">
+                                        <div className="space-y-2">
                                             <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <CreditCard className="h-4 w-4 text-gray-400" />
-                                                <span>Fine: <span className="font-semibold text-orange-600">{master.fine_type === 'FIXED' ? `₹${master.fine_amount}` : `${master.fine_amount}%`}</span></span>
+                                                <FileText className="h-4 w-4 text-gray-400" />
+                                                <span>Due: <span className="font-semibold text-gray-900">{master.due_date}</span></span>
                                             </div>
-                                        )}
+                                            {master.fine_type !== 'NONE' && (
+                                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                    <CreditCard className="h-4 w-4 text-gray-400" />
+                                                    <span>Fine: <span className="font-semibold text-orange-600">{master.fine_type === 'FIXED' ? `₹${master.fine_amount}` : `${master.fine_amount}%`}</span></span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button 
+                                            onClick={async () => {
+                                                try {
+                                                    toast.loading('Allocating fees...', { id: 'alloc' });
+                                                    const res = await feeService.bulkAllocate(master.id);
+                                                    toast.success(res.message, { id: 'alloc' });
+                                                } catch (err: any) {
+                                                    toast.error(err.response?.data?.error || 'Allocation failed', { id: 'alloc' });
+                                                }
+                                            }}
+                                            className="w-full bg-indigo-50 text-indigo-600 py-2 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all border border-indigo-100"
+                                        >
+                                            Allocate to Class
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -321,6 +418,87 @@ export default function Fees() {
                                     <p className="text-gray-500 max-w-sm mx-auto">Start by creating fee groups and types, then define your fee structure using the button above.</p>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                )}
+                {activeTab === 'history' && (
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-xl font-bold text-gray-900">Payment History</h3>
+                            <div className="relative">
+                                <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search payments..." 
+                                    className="pl-10 pr-4 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="border rounded-xl overflow-hidden bg-white shadow-sm">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Date</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Student</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Fee Type</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Amount</th>
+                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Mode</th>
+                                        <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">Receipt</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {payments.map((payment) => (
+                                        <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {new Date(payment.payment_date).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-bold text-gray-900">{payment.student_name}</div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                                {payment.fee_type_name}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-black text-gray-900">
+                                                ₹{payment.amount_paid}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-[10px] font-bold">
+                                                    {payment.payment_mode}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                                                <button 
+                                                    onClick={async () => {
+                                                        try {
+                                                            toast.loading('Downloading receipt...', { id: 'pdf' });
+                                                            const blob = await feeService.downloadReceipt(payment.id);
+                                                            const url = window.URL.createObjectURL(new Blob([blob]));
+                                                            const link = document.createElement('a');
+                                                            link.href = url;
+                                                            link.setAttribute('download', `Receipt_${payment.id}.pdf`);
+                                                            document.body.appendChild(link);
+                                                            link.click();
+                                                            link.remove();
+                                                            toast.success('Receipt Downloaded', { id: 'pdf' });
+                                                        } catch { toast.error('Download failed', { id: 'pdf' }); }
+                                                    }}
+                                                    className="text-indigo-600 hover:text-indigo-900"
+                                                >
+                                                    <Download className="h-5 w-5" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {payments.length === 0 && (
+                                        <tr>
+                                            <td colSpan={6} className="px-6 py-20 text-center text-gray-400">
+                                                No payment records found.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 )}
@@ -351,6 +529,7 @@ export default function Fees() {
                 }}
                 onSuccess={() => {
                     if (selectedStudent) fetchStudentFees(selectedStudent.id);
+                    fetchPayments(); // Refresh history
                 }}
             />
         </div>

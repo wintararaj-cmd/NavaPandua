@@ -235,11 +235,35 @@ export default function Exams() {
                                         </select>
                                     </div>
                                 </div>
-                            </div>
-                            <button onClick={handleLoadStudents} disabled={loading} className="w-full md:w-auto bg-white text-indigo-600 px-12 py-5 rounded-2xl font-black text-sm shadow-xl transition-all hover:bg-indigo-50 active:scale-95 disabled:opacity-50 whitespace-nowrap">
-                                SYNC RECORDS
-                            </button>
-                        </div>
+                                 </div>
+                             </div>
+                             <div className="flex gap-4">
+                                 <button onClick={handleLoadStudents} disabled={loading} className="bg-white text-indigo-600 px-8 py-5 rounded-2xl font-black text-sm shadow-xl transition-all hover:bg-indigo-50 active:scale-95 disabled:opacity-50 whitespace-nowrap">
+                                     SYNC RECORDS
+                                 </button>
+                                 <button 
+                                     onClick={async () => {
+                                         if (!selectedExam || !selectedClass) { toast.error('Select both exam and class'); return; }
+                                         try {
+                                             toast.loading('Generating Consolidated Sheet...', { id: 'pdf' });
+                                             const blob = await examService.downloadConsolidatedMarksheet(selectedExam, selectedClass);
+                                             const url = window.URL.createObjectURL(new Blob([blob]));
+                                             const link = document.createElement('a');
+                                             link.href = url;
+                                             link.setAttribute('download', `Consolidated_Sheet.pdf`);
+                                             document.body.appendChild(link);
+                                             link.click();
+                                             link.remove();
+                                             toast.success('Consolidated Sheet Downloaded', { id: 'pdf' });
+                                         } catch { toast.error('Failed to download sheet', { id: 'pdf' }); }
+                                     }}
+                                     disabled={loading || !selectedExam || !selectedClass} 
+                                     className="bg-indigo-900 text-white px-8 py-5 rounded-2xl font-black text-sm shadow-xl transition-all hover:bg-indigo-950 active:scale-95 disabled:opacity-50 whitespace-nowrap flex items-center gap-2"
+                                 >
+                                     <FileSpreadsheet className="w-5 h-5" /> CONSOLIDATED SHEET
+                                 </button>
+                             </div>
+                         </div>
 
                         {students.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

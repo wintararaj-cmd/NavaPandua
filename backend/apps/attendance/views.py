@@ -75,6 +75,51 @@ class StudentAttendanceViewSet(AttendanceBaseViewSet):
             return Response({'message': f'Attendance saved for {len(attendances)} students'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['get'], url_path='monthly-report')
+    def monthly_report(self, request):
+        year = int(request.query_params.get('year'))
+        month = int(request.query_params.get('month'))
+        class_id = request.query_params.get('class_id')
+        
+        if not all([year, month, class_id]):
+            return Response({"error": "year, month and class_id are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        from apps.students.models import Student
+        from calendar import monthrange
+        
+        students = Student.objects.filter(current_class_id=class_id, school=request.user.school).order_by('roll_number', 'first_name')
+        num_days = monthrange(year, month)[1]
+        
+        report = []
+        for student in students:
+            attendances = StudentAttendance.objects.filter(
+                student=student,
+                date__year=year,
+                date__month=month
+            )
+            
+            day_map = {a.date.day: a.status for a in attendances}
+            counts = {
+                'PRESENT': 0, 'ABSENT': 0, 'LATE': 0, 'HALF_DAY': 0, 'EXCUSED': 0
+            }
+            for status_val in day_map.values():
+                counts[status_val] += 1
+                
+            report.append({
+                'student_id': student.id,
+                'name': student.user.get_full_name(),
+                'roll_number': student.roll_number,
+                'days': day_map,
+                'summary': counts
+            })
+            
+        return Response({
+            'year': year,
+            'month': month,
+            'num_days': num_days,
+            'report': report
+        })
+
 class TeacherAttendanceViewSet(AttendanceBaseViewSet):
     queryset = TeacherAttendance.objects.all()
     serializer_class = TeacherAttendanceSerializer

@@ -100,5 +100,13 @@ export const examService = {
             responseType: 'blob'
         });
         return response.data;
+    },
+
+    downloadConsolidatedMarksheet: async (examId: string, classId: string) => {
+        const response = await api.get(`/exams/${examId}/consolidated-marksheet/`, {
+            params: { class_id: classId },
+            responseType: 'blob'
+        });
+        return response.data;
     }
 };

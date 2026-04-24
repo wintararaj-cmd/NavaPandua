@@ -119,6 +119,76 @@ class ExamViewSet(ExamBaseViewSet):
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
+    @action(detail=True, methods=['get'], url_path='consolidated-marksheet')
+    def consolidated_marksheet(self, request, pk=None):
+        exam = self.get_object()
+        class_id = request.query_params.get('class_id')
+        
+        if not class_id:
+            return Response({"error": "class_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        from apps.students.models import Student
+        from apps.subjects.models import Subject
+        from apps.exams.models import ExamResult, ExamSchedule
+        
+        students = Student.objects.filter(current_class_id=class_id, school=exam.school).order_by('roll_number', 'first_name')
+        schedules = ExamSchedule.objects.filter(exam=exam).select_related('subject')
+        subjects = [s.subject for s in schedules]
+        
+        if not students.exists():
+            return Response({"error": "No students found in this class"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Prepare PDF
+        buffer = io.BytesIO()
+        from reportlab.lib.pagesizes import landscape, A4
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(A4))
+        elements = []
+        styles = getSampleStyleSheet()
+
+        elements.append(Paragraph(f"Consolidated Marksheet: {exam.name}", styles['Title']))
+        elements.append(Paragraph(f"Class ID: {class_id}", styles['Normal']))
+        elements.append(Paragraph("<br/>", styles['Normal']))
+
+        # Table Header: Roll, Name, Subjects..., Total, GPA
+        header = ['Roll', 'Student Name'] + [sub.name for sub in subjects] + ['Total', 'GPA']
+        data = [header]
+
+        for student in students:
+            row = [student.roll_number or '-', student.user.get_full_name()]
+            student_total = 0
+            
+            for schedule in schedules:
+                result = ExamResult.objects.filter(student=student, exam_schedule=schedule).first()
+                if result:
+                    row.append(str(result.marks_obtained))
+                    student_total += result.marks_obtained
+                else:
+                    row.append('-')
+            
+            row.append(str(student_total))
+            gpa = GradingService.calculate_gpa(student, exam)
+            row.append(str(gpa))
+            data.append(row)
+
+        table = Table(data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.indigo),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+        ]))
+        elements.append(table)
+        
+        doc.build(elements)
+        buffer.seek(0)
+        
+        response = HttpResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="Consolidated_{exam.name}.pdf"'
+        return response
+
 class ExamScheduleViewSet(ExamBaseViewSet):
     queryset = ExamSchedule.objects.all()
     serializer_class = ExamScheduleSerializer

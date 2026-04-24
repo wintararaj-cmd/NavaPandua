@@ -28,13 +28,24 @@ class FeeMaster(BaseModel):
     school = models.ForeignKey('schools.School', on_delete=models.CASCADE, related_name='fee_masters')
     fee_group = models.ForeignKey(FeeGroup, on_delete=models.CASCADE, related_name='masters')
     fee_type = models.ForeignKey(FeeType, on_delete=models.CASCADE, related_name='masters')
+    
+    # Target Class (optional - if null, it's a general fee)
+    target_class = models.ForeignKey(
+        'classes.Class', 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True, 
+        related_name='fee_masters'
+    )
+    
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     due_date = models.DateField()
     fine_type = models.CharField(max_length=20, choices=[('NONE', 'None'), ('FIXED', 'Fixed Amount'), ('PERCENTAGE', 'Percentage')], default='NONE')
     fine_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
-        return f"{self.fee_group.name} - {self.fee_type.name} ({self.amount})"
+        class_name = self.target_class.name if self.target_class else "Global"
+        return f"{class_name} - {self.fee_group.name} - {self.fee_type.name} ({self.amount})"
 
     class Meta:
         db_table = 'fee_masters'

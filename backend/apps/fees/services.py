@@ -50,3 +50,43 @@ class PaymentGateway:
             })
         except Exception:
             return False
+
+class FeeAllocationService:
+    @staticmethod
+    def allocate_to_class(fee_master, target_class=None, target_class_id=None):
+        """
+        Allocates a fee to all students in a class or the master's target class.
+        """
+        from apps.students.models import Student
+        from apps.classes.models import Class
+        from .models import FeeAllocation
+        from django.db import transaction
+
+        if target_class_id:
+            try:
+                cls = Class.objects.get(id=target_class_id)
+            except Class.DoesNotExist:
+                raise ValidationError(f"Class with ID {target_class_id} not found.")
+        else:
+            cls = target_class or fee_master.target_class
+            
+        if not cls:
+            raise ValidationError("A class must be specified for allocation.")
+
+        students = Student.objects.filter(current_class=cls, status='ACTIVE', school=fee_master.school)
+        
+        count = 0
+        with transaction.atomic():
+            for student in students:
+                # Avoid duplicate allocation
+                if not FeeAllocation.objects.filter(student=student, fee_master=fee_master).exists():
+                    FeeAllocation.objects.create(
+                        school=fee_master.school,
+                        student=student,
+                        fee_master=fee_master,
+                        amount=fee_master.amount,
+                        due_date=fee_master.due_date,
+                        status='UNPAID'
+                    )
+                    count += 1
+        return count

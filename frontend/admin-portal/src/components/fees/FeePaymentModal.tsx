@@ -110,6 +110,22 @@ export default function FeePaymentModal({ isOpen, allocation, onClose, onSuccess
                                     </button>
                                 ))}
                             </div>
+                                {formData.payment_mode === 'ONLINE' && (
+                                    <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100 flex flex-col items-center">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Scan with any UPI App</p>
+                                        <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-100 mb-2">
+                                            <img 
+                                                src={`${import.meta.env.VITE_API_URL}/fees/allocations/${allocation.id}/upi-qr/`} 
+                                                alt="UPI QR Code" 
+                                                className="w-40 h-40"
+                                            />
+                                        </div>
+                                        <p className="text-[9px] text-center text-gray-500 max-w-[200px]">
+                                            After scanning and paying, please enter the transaction ID in the reference field above.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div>

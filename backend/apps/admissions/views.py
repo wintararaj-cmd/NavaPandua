@@ -174,8 +174,36 @@ class PublicAdmissionView(APIView):
                 
                 # Generate PDF
                 pdf_buffer = generate_admission_acknowledgement(application)
+                pdf_content = pdf_buffer.getvalue()
                 
-                response = HttpResponse(pdf_buffer, content_type='application/pdf')
+                # Send Email Notification with Attachment
+                from django.core.mail import EmailMessage
+                from django.conf import settings
+                from apps.notifications.services import NotificationService
+                
+                email_target = application.father_email or application.mother_email
+                if email_target:
+                    try:
+                        email = EmailMessage(
+                            subject=f"Admission Application Received - {application.application_number}",
+                            body=f"Dear {application.father_name or 'Parent'},\n\nThank you for applying for admission at {application.school.name}. Please find attached the acknowledgement for your application {application.application_number}.\n\nRegards,\nAdmission Team",
+                            from_email=settings.DEFAULT_FROM_EMAIL,
+                            to=[email_target],
+                        )
+                        email.attach(f"acknowledgement_{application.application_number}.pdf", pdf_content, 'application/pdf')
+                        email.send(fail_silently=True)
+                        
+                        # System notification for the school admin
+                        NotificationService.send_notification(
+                            user=application.school.admin if hasattr(application.school, 'admin') else None,
+                            title="New Admission Application",
+                            message=f"New application {application.application_number} received for {application.first_name}.",
+                            notification_type='INFO'
+                        )
+                    except Exception as e:
+                        print(f"Failed to send admission email: {e}")
+                
+                response = HttpResponse(pdf_content, content_type='application/pdf')
                 response['Content-Disposition'] = f'attachment; filename="acknowledgement_{application.application_number}.pdf"'
                 return response
         return Response(serializer.errors, status=400)

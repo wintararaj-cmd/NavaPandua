@@ -313,7 +313,22 @@ export default function Attendance() {
     const [students, setStudents] = useState<Student[]>([]);
     const [attendanceData, setAttendanceData] = useState<Record<string, { status: string; remarks: string }>>({});
 
+    // Report states
+    const [reportYear, setReportYear] = useState(new Date().getFullYear());
+    const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
+    const [monthlyReportData, setMonthlyReportData] = useState<any>(null);
+
     useEffect(() => { fetchInitialData(); }, []);
+
+    const loadMonthlyReport = async () => {
+        if (!selectedClass) { toast.error(`Please select a ${terms.classLabel.toLowerCase()}`); return; }
+        try {
+            setLoading(true);
+            const data = await attendanceService.getMonthlyReport(reportYear, reportMonth, selectedClass);
+            setMonthlyReportData(data);
+        } catch { toast.error('Failed to load monthly report'); }
+        finally { setLoading(false); }
+    };
 
     useEffect(() => {
         if (selectedClass) fetchSections(selectedClass);
@@ -531,10 +546,93 @@ export default function Attendance() {
                         )}
 
                         {activeTab === 'report' && (
-                            <div className="py-24 text-center animate-in fade-in duration-700">
-                                <Calendar className="h-20 w-20 text-gray-50 mx-auto mb-6" />
-                                <h4 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Analytical Insights</h4>
-                                <p className="text-gray-400 font-medium">Loading historical trends and participation metrics...</p>
+                            <div className="space-y-8 animate-in fade-in duration-700">
+                                <div className="flex flex-wrap gap-4 items-end bg-gray-50/50 p-6 rounded-3xl border border-gray-50">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Year</label>
+                                        <select 
+                                            className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none"
+                                            value={reportYear}
+                                            onChange={e => setReportYear(parseInt(e.target.value))}
+                                        >
+                                            {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Month</label>
+                                        <select 
+                                            className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none"
+                                            value={reportMonth}
+                                            onChange={e => setReportMonth(parseInt(e.target.value))}
+                                        >
+                                            {Array.from({length: 12}, (_, i) => i + 1).map(m => (
+                                                <option key={m} value={m}>{new Date(0, m-1).toLocaleString('default', {month: 'long'})}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <button 
+                                        onClick={loadMonthlyReport}
+                                        className="bg-indigo-600 text-white px-8 py-3.5 rounded-2xl hover:bg-indigo-700 flex items-center justify-center gap-3 text-sm font-black shadow-xl shadow-indigo-100 transition active:scale-95"
+                                    >
+                                        <ClipboardList className="h-5 w-5" /> GENERATE REPORT
+                                    </button>
+                                </div>
+
+                                {monthlyReportData ? (
+                                    <div className="border border-gray-100 rounded-[32px] overflow-hidden bg-white shadow-sm overflow-x-auto">
+                                        <table className="min-w-full divide-y divide-gray-50">
+                                            <thead className="bg-gray-50/50">
+                                                <tr>
+                                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase sticky left-0 bg-gray-50 z-10">Student</th>
+                                                    {Array.from({length: monthlyReportData.num_days}, (_, i) => i + 1).map(d => (
+                                                        <th key={d} className="px-2 py-4 text-center text-[10px] font-black text-gray-400">{d}</th>
+                                                    ))}
+                                                    <th className="px-4 py-4 text-center text-[10px] font-black text-gray-400 uppercase">P</th>
+                                                    <th className="px-4 py-4 text-center text-[10px] font-black text-gray-400 uppercase">A</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-50">
+                                                {monthlyReportData.report.map((row: any) => (
+                                                    <tr key={row.student_id} className="hover:bg-gray-50/50 transition">
+                                                        <td className="px-6 py-4 whitespace-nowrap sticky left-0 bg-white z-10 border-r border-gray-50">
+                                                            <div className="text-sm font-bold text-gray-900">{row.name}</div>
+                                                            <div className="text-[9px] font-black text-gray-400 uppercase">{row.roll_number || 'No Roll'}</div>
+                                                        </td>
+                                                        {Array.from({length: monthlyReportData.num_days}, (_, i) => i + 1).map(d => {
+                                                            const status = row.days[d];
+                                                            const colorMap: any = {
+                                                                PRESENT: 'bg-emerald-500',
+                                                                ABSENT: 'bg-red-500',
+                                                                LATE: 'bg-amber-500',
+                                                                HALF_DAY: 'bg-indigo-500',
+                                                                EXCUSED: 'bg-blue-400'
+                                                            };
+                                                            return (
+                                                                <td key={d} className="px-0.5 py-4 text-center">
+                                                                    {status ? (
+                                                                        <div className={`w-5 h-5 rounded-md mx-auto ${colorMap[status]} flex items-center justify-center text-[8px] font-black text-white`}>
+                                                                            {status[0]}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="w-5 h-5 rounded-md mx-auto bg-gray-50 border border-gray-100"></div>
+                                                                    )}
+                                                                </td>
+                                                            );
+                                                        })}
+                                                        <td className="px-4 py-4 text-center text-sm font-black text-emerald-600">{row.summary.PRESENT}</td>
+                                                        <td className="px-4 py-4 text-center text-sm font-black text-red-600">{row.summary.ABSENT}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="py-24 text-center">
+                                        <Calendar className="h-20 w-20 text-gray-100 mx-auto mb-6" />
+                                        <h4 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Select month & {terms.classLabel.toLowerCase()}</h4>
+                                        <p className="text-gray-400 font-medium max-w-sm mx-auto">Generate a complete presence matrix for historical analysis.</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

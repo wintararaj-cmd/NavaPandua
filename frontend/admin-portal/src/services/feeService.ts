@@ -108,5 +108,24 @@ export const feeService = {
     }) => {
         const response = await api.post('/fees/payments/', data);
         return response.data;
+    },
+
+    bulkAllocate: async (masterId: string, classId?: string) => {
+        const response = await api.post(`/fees/masters/${masterId}/bulk-allocate/`, { class_id: classId });
+        return response.data;
+    },
+
+    getStudentLedger: async (studentId: string) => {
+        const response = await api.get('/fees/allocations/student-ledger/', {
+            params: { student_id: studentId }
+        });
+        return response.data;
+    },
+
+    downloadReceipt: async (paymentId: string) => {
+        const response = await api.get(`/fees/payments/${paymentId}/receipt/`, {
+            responseType: 'blob'
+        });
+        return response.data;
     }
 };
