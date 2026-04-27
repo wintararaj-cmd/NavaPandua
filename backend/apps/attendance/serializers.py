@@ -5,7 +5,7 @@ from .models import StudentAttendance, TeacherAttendance, LeaveType, LeaveApplic
 
 class StudentAttendanceSerializer(serializers.ModelSerializer):
     student_name = serializers.ReadOnlyField(source='student.get_full_name')
-    class_name = serializers.ReadOnlyField(source='student.class_assigned.name')
+    class_name = serializers.ReadOnlyField(source='student.current_class.name')
     section_name = serializers.ReadOnlyField(source='student.section.name')
 
     class Meta:

@@ -355,7 +355,7 @@ export default function Attendance() {
             setLoading(true);
             const [studentsData, existingAttendance] = await Promise.all([
                 studentService.getStudents({ current_class: selectedClass, section: selectedSection }),
-                attendanceService.getStudentAttendance({ date, student__class_assigned: selectedClass, student__section: selectedSection })
+                attendanceService.getStudentAttendance({ date, student__current_class: selectedClass, student__section: selectedSection })
             ]);
             const studentList = (studentsData.results || []) as Student[];
             setStudents(studentList);

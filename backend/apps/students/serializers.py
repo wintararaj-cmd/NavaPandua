@@ -16,6 +16,8 @@ class StudentSerializer(serializers.ModelSerializer):
     class_details = ClassSerializer(source='current_class', read_only=True)
     section_details = SectionSerializer(source='section', read_only=True)
     siblings = StudentSiblingSerializer(many=True, read_only=True)
+    first_name = serializers.ReadOnlyField(source='user.first_name')
+    last_name = serializers.ReadOnlyField(source='user.last_name')
     
     class Meta:
         model = Student

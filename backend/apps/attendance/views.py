@@ -32,7 +32,7 @@ class AttendanceBaseViewSet(viewsets.ModelViewSet):
 class StudentAttendanceViewSet(AttendanceBaseViewSet):
     queryset = StudentAttendance.objects.all()
     serializer_class = StudentAttendanceSerializer
-    filterset_fields = ['student', 'date', 'status', 'student__class_assigned', 'student__section']
+    filterset_fields = ['student', 'date', 'status', 'student__current_class', 'student__section']
     search_fields = ['student__first_name', 'student__last_name']
 
     @action(detail=False, methods=['get'], url_path='my-attendance')
@@ -77,12 +77,18 @@ class StudentAttendanceViewSet(AttendanceBaseViewSet):
 
     @action(detail=False, methods=['get'], url_path='monthly-report')
     def monthly_report(self, request):
-        year = int(request.query_params.get('year'))
-        month = int(request.query_params.get('month'))
+        year_param = request.query_params.get('year')
+        month_param = request.query_params.get('month')
         class_id = request.query_params.get('class_id')
         
-        if not all([year, month, class_id]):
+        if not all([year_param, month_param, class_id]):
             return Response({"error": "year, month and class_id are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            year = int(year_param)
+            month = int(month_param)
+        except (ValueError, TypeError):
+            return Response({"error": "year and month must be valid integers"}, status=status.HTTP_400_BAD_REQUEST)
 
         from apps.students.models import Student
         from calendar import monthrange
@@ -132,37 +138,40 @@ class LeaveTypeViewSet(AttendanceBaseViewSet):
     search_fields = ['name']
 
 class LeaveApplicationViewSet(AttendanceBaseViewSet):
+    queryset = LeaveApplication.objects.all()
+    serializer_class = LeaveApplicationSerializer
+    filterset_fields = ['status', 'applicant', 'leave_type']
+    search_fields = ['reason', 'applicant__first_name', 'applicant__last_name']
+
     def get_queryset(self):
         user = self.request.user
-        queryset = LeaveApplication.objects.filter(school=user.school)
+        queryset = super().get_queryset()
         
         if user.role == 'STUDENT':
+             # Students only see their own leave applications
              queryset = queryset.filter(applicant=user)
-        # Teachers might only see their own leaves + their class students' leaves?
-        # For simplicity, teachers see their own, admins see all.
-        # Improving this: Teachers should see students' leaves if they are class teachers.
-        elif user.role == 'TEACHER':
-             # Teachers see their own applications + applications where they are the approver (if implemented)
-             # Or all student applications?
-             # For now, let's allow teachers to see all applications to manage them, 
-             # pending a more granular permission system or ClassTeacher relationship.
-             pass 
+        elif user.role == 'PARENT':
+             # Parents see their children's leave applications
+             # Assuming parent has children relationship
+             queryset = queryset.filter(applicant__student_profile__parent=user)
              
         return queryset
 
     def perform_create(self, serializer):
-        # Save leave application for the current user
-        if self.request.user.school:
-            serializer.save(
-                school=self.request.user.school,
-                applicant=self.request.user,
-                status='PENDING'
+        # Default status is PENDING, applicant is the current user
+        serializer.save(
+            school=self.request.user.school,
+            applicant=self.request.user,
+            status='PENDING'
+        )
+        
+        # Send notification to school admin/teachers (Optional)
+        try:
+            NotificationService.send_leave_notification(
+                leave_application=serializer.instance
             )
-        else:
-            serializer.save(
-                applicant=self.request.user,
-                status='PENDING'
-            )
+        except:
+            pass
 
     @action(detail=True, methods=['post'], url_path='approve')
     def approve(self, request, pk=None):

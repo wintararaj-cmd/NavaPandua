@@ -50,33 +50,22 @@ class AdmissionApplicationViewSet(viewsets.ModelViewSet):
             serializer.save(school=self.request.user.school)
         else:
             serializer.save()
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from django.http import HttpResponse
-from .utils import generate_admission_acknowledgement
-from apps.schools.models import School
-from apps.classes.models import Class
-from apps.students.models import Student
-from django.db import transaction
 
-class PublicAdmissionView(APIView):
-    """
-    Public API for submitting admission applications from the landing page.
-    """
-    permission_classes = [permissions.AllowAny]
-    
-    def post(self, request):
-        serializer = AdmissionApplicationSerializer(data=request.data)
-        if serializer.is_valid():
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        old_status = instance.status
+        new_status = serializer.validated_data.get('status', old_status)
+        
+        application = serializer.save()
+        
+        # If status changed to ADMITTED, create the Student and User records
+        if old_status != 'ADMITTED' and new_status == 'ADMITTED':
+            from django.db import transaction
             with transaction.atomic():
-                application = serializer.save()
-                
-                # Automatically create a student record as requested
-                # Note: In a real system, this might be done after approval, 
-                # but the user requested all info to be filled in student table.
-                
-                # We need a user for the student
                 from apps.accounts.models import User
+                from apps.students.models import Student
+                from django.utils import timezone
+                
                 username = f"app_{application.application_number.lower()}"
                 email = application.father_email or f"{username}@school.local"
                 
@@ -94,8 +83,6 @@ class PublicAdmissionView(APIView):
                     user.set_password('Welcome@123')
                     user.save()
                 
-                # Create Student profile
-                from django.utils import timezone
                 Student.objects.create(
                     user=user,
                     school=application.school,
@@ -171,6 +158,30 @@ class PublicAdmissionView(APIView):
                     father_photo=application.father_photo,
                     mother_photo=application.mother_photo,
                 )
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.http import HttpResponse
+from .utils import generate_admission_acknowledgement
+from apps.schools.models import School
+from apps.classes.models import Class
+from apps.students.models import Student
+from django.db import transaction
+
+class PublicAdmissionView(APIView):
+    """
+    Public API for submitting admission applications from the landing page.
+    """
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        serializer = AdmissionApplicationSerializer(data=request.data)
+        if serializer.is_valid():
+            with transaction.atomic():
+                application = serializer.save()
+                
+                # The application is submitted successfully.
+                # Student record will be created later when they come to school and pay the admission fees
+                # and the status is changed to ADMITTED.
                 
                 # Generate PDF
                 pdf_buffer = generate_admission_acknowledgement(application)

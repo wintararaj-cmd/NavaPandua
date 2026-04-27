@@ -181,7 +181,7 @@ export default function Fees() {
                                             <tr key={student.id}>
                                                 <td className="px-6 py-4 whitespace-nowrap">{student.first_name} {student.last_name}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">{student.admission_number}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap">{student.class_assigned_details?.name}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">{student.class_details?.name}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right">
                                                     <button
                                                         onClick={() => {
@@ -213,7 +213,7 @@ export default function Fees() {
                                                 {selectedStudent.first_name} {selectedStudent.last_name}
                                             </h3>
                                             <p className="text-gray-500 text-sm">
-                                                ID: {selectedStudent.admission_number} | Class: {selectedStudent.class_assigned_details?.name} {selectedStudent.section_details?.name}
+                                                ID: {selectedStudent.admission_number} | Class: {selectedStudent.class_details?.name} {selectedStudent.section_details?.name}
                                             </p>
                                         </div>
                                     </div>
