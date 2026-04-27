@@ -120,20 +120,55 @@ export default function Admissions() {
         }
     };
 
+    const downloadPdf = (blob: Blob, filename: string) => {
+        const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode?.removeChild(link);
+        window.URL.revokeObjectURL(url);
+    };
+
     const handleSaveApp = async (data: any) => {
         try {
             setActionLoading(true);
+            let savedApp;
             if (selectedApp) {
-                await admissionsService.updateApplication(selectedApp.id, data);
+                savedApp = await admissionsService.updateApplication(selectedApp.id, data);
                 toast.success('Application updated successfully');
             } else {
-                await admissionsService.createApplication(data);
+                savedApp = await admissionsService.createApplication(data);
                 toast.success('Application created successfully');
             }
+            
+            // Download the form and invoice
+            try {
+                if (savedApp && savedApp.id) {
+                    const formBlob = await admissionsService.downloadApplicationForm(savedApp.id);
+                    downloadPdf(formBlob, `admission_form_${savedApp.application_number || 'new'}.pdf`);
+                    
+                    // Add a small delay so browser doesn't block multiple downloads
+                    setTimeout(async () => {
+                        try {
+                            const invoiceBlob = await admissionsService.downloadApplicationInvoice(savedApp.id);
+                            downloadPdf(invoiceBlob, `admission_invoice_${savedApp.application_number || 'new'}.pdf`);
+                        } catch (invErr) {
+                            console.error('Failed to download invoice:', invErr);
+                            toast.error('Failed to download invoice automatically');
+                        }
+                    }, 500);
+                }
+            } catch (dlErr) {
+                console.error('Failed to download form:', dlErr);
+                toast.error('Failed to download form automatically');
+            }
+
             fetchApplications();
             setIsAppModalOpen(false);
         } catch (error) {
-            toast.error('Failed to save application');
+            console.error('Error in handleSaveApp:', error);
             throw error;
         } finally {
             setActionLoading(false);
@@ -331,8 +366,8 @@ export default function Admissions() {
                                             { (app as any).father_name || 'Guardian' }
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900 font-medium">{ (app as any).parent_phone || '-' }</div>
-                                            <div className="text-sm text-gray-500 font-medium">{ (app as any).parent_email || '-' }</div>
+                                            <div className="text-sm text-gray-900 font-medium">{ (app as any).father_phone || '-' }</div>
+                                            <div className="text-sm text-gray-500 font-medium">{ (app as any).father_email || '-' }</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${getStatusColor(app.status)}`}>

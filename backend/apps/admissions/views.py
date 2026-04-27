@@ -1,6 +1,8 @@
 
 from rest_framework import viewsets, permissions, filters
 from rest_framework.views import APIView
+from rest_framework.decorators import action
+from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import AdmissionEnquiry, AdmissionApplication
 from .serializers import AdmissionEnquirySerializer, AdmissionApplicationSerializer
@@ -35,7 +37,7 @@ class AdmissionApplicationViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'school', 'target_class']
-    search_fields = ['application_number', 'first_name', 'last_name', 'parent_phone']
+    search_fields = ['application_number', 'first_name', 'last_name', 'father_phone']
     ordering_fields = ['created_at', 'status']
     
     def get_queryset(self):
@@ -45,11 +47,43 @@ class AdmissionApplicationViewSet(viewsets.ModelViewSet):
            queryset = queryset.filter(school=user.school)
         return queryset
 
+    def _handle_admission_fee(self, application):
+        from apps.fees.models import FeeMaster, FeeAllocation
+        # Look for Admission Fee for this specific class
+        admission_fee_master = FeeMaster.objects.filter(
+            school=application.school,
+            target_class=application.target_class,
+            fee_type__name__icontains='Admission'
+        ).first()
+        
+        if admission_fee_master:
+            allocation, created = FeeAllocation.objects.get_or_create(
+                school=application.school,
+                application=application,
+                fee_master=admission_fee_master,
+                defaults={
+                    'amount': admission_fee_master.amount,
+                    'status': 'PAID' if application.application_fee_paid else 'UNPAID',
+                    'paid_amount': admission_fee_master.amount if application.application_fee_paid else 0
+                }
+            )
+            if not created:
+                # Sync payment status if changed
+                if application.application_fee_paid and allocation.status != 'PAID':
+                    allocation.status = 'PAID'
+                    allocation.paid_amount = allocation.amount
+                    allocation.save()
+                elif not application.application_fee_paid and allocation.status == 'PAID':
+                    allocation.status = 'UNPAID'
+                    allocation.paid_amount = 0
+                    allocation.save()
+
     def perform_create(self, serializer):
         if self.request.user.school:
-            serializer.save(school=self.request.user.school)
+            application = serializer.save(school=self.request.user.school)
         else:
-            serializer.save()
+            application = serializer.save()
+        self._handle_admission_fee(application)
 
     def perform_update(self, serializer):
         instance = serializer.instance
@@ -57,6 +91,8 @@ class AdmissionApplicationViewSet(viewsets.ModelViewSet):
         new_status = serializer.validated_data.get('status', old_status)
         
         application = serializer.save()
+        self._handle_admission_fee(application)
+        
         
         # If status changed to ADMITTED, create the Student and User records
         if old_status != 'ADMITTED' and new_status == 'ADMITTED':
@@ -158,9 +194,27 @@ class AdmissionApplicationViewSet(viewsets.ModelViewSet):
                     father_photo=application.father_photo,
                     mother_photo=application.mother_photo,
                 )
-from rest_framework.decorators import action
+
+    @action(detail=True, methods=['get'])
+    def download_form(self, request, pk=None):
+        application = self.get_object()
+        from .utils import generate_admission_acknowledgement
+        pdf_buffer = generate_admission_acknowledgement(application)
+        pdf_content = pdf_buffer.getvalue()
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="admission_form_{application.application_number}.pdf"'
+        return response
+
+    @action(detail=True, methods=['get'])
+    def download_invoice(self, request, pk=None):
+        application = self.get_object()
+        from .utils import generate_admission_invoice
+        pdf_buffer = generate_admission_invoice(application)
+        pdf_content = pdf_buffer.getvalue()
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="admission_invoice_{application.application_number}.pdf"'
+        return response
 from rest_framework.response import Response
-from django.http import HttpResponse
 from .utils import generate_admission_acknowledgement
 from apps.schools.models import School
 from apps.classes.models import Class

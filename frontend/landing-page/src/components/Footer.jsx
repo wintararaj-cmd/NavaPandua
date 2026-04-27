@@ -13,12 +13,12 @@ const Footer = () => {
                 <img src="/logo.png" alt="Logo" />
               </div>
               <div className="footer-brand-text">
-                <div className="footer-name">NAVADAYA</div>
+                <div className="footer-name">NABODAYA</div>
                 <div className="footer-tagline">Education Trust</div>
               </div>
             </div>
             <p className="footer-desc">
-              Navadaya Education Trust is an Indian NGO working to ensure happier 
+              Nabodaya Education Trust is an Indian NGO working to ensure happier 
               childhoods for all children by giving them access to education, 
               proper healthcare, and protection from exploitation.
             </p>
@@ -74,7 +74,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="footer-bottom">
           <div className="copyright">
-            © 2026 Navadaya Education Trust. All Rights Reserved. | Registered under IT Act 12A & 80G.
+            © 2026 Nabodaya Education Trust. All Rights Reserved. | Registered under IT Act 12A & 80G.
           </div>
           <div className="legal-links">
             <a href="#">Privacy Policy</a>

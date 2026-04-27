@@ -57,7 +57,8 @@ class FeeAllocation(BaseModel):
         ('PAID', 'Paid'),
     ]
     school = models.ForeignKey('schools.School', on_delete=models.CASCADE, related_name='fee_allocations')
-    student = models.ForeignKey('students.Student', on_delete=models.CASCADE, related_name='fee_allocations')
+    student = models.ForeignKey('students.Student', on_delete=models.CASCADE, related_name='fee_allocations', null=True, blank=True)
+    application = models.ForeignKey('admissions.AdmissionApplication', on_delete=models.CASCADE, related_name='fee_allocations', null=True, blank=True)
     fee_master = models.ForeignKey(FeeMaster, on_delete=models.CASCADE, related_name='allocations')
     due_date = models.DateField(null=True, blank=True) # Override master due date if needed
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -69,7 +70,8 @@ class FeeAllocation(BaseModel):
         return self.amount - self.paid_amount
 
     def __str__(self):
-        return f"{self.student.first_name} - {self.fee_master.fee_type.name}"
+        name = self.student.first_name if self.student else (self.application.first_name if self.application else "Unknown")
+        return f"{name} - {self.fee_master.fee_type.name}"
 
     class Meta:
         db_table = 'fee_allocations'

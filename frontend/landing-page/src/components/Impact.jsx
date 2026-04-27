@@ -84,7 +84,7 @@ const Impact = () => {
                 to put my dreams on hold."
               </blockquote>
               <p>
-                Through Navadaya's intervention and counseling, Geeta was re-enrolled in school. 
+                Through Nabodaya's intervention and counseling, Geeta was re-enrolled in school. 
                 Today, she is not only completing her high school education but also tutoring 
                 younger children in her community.
               </p>

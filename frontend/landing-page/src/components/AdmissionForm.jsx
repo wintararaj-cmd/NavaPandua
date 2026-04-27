@@ -308,8 +308,33 @@ const AdmissionForm = () => {
                                     </div>
                                     <div className="form-group"><label>Place of Birth</label><input type="text" name="place_of_birth" value={formData.place_of_birth} onChange={handleChange} className="form-control" /></div>
                                     <div className="form-group"><label>Nationality</label><input type="text" name="nationality" value={formData.nationality} onChange={handleChange} className="form-control" /></div>
-                                    <div className="form-group"><label>Mother Tongue</label><input type="text" name="mother_tongue" value={formData.mother_tongue} onChange={handleChange} className="form-control" /></div>
-                                    <div className="form-group"><label>Religion</label><input type="text" name="religion" value={formData.religion} onChange={handleChange} className="form-control" /></div>
+                                    <div className="form-group">
+                                        <label>Mother Tongue</label>
+                                        <select name="mother_tongue" value={formData.mother_tongue} onChange={handleChange} className="form-control">
+                                            <option value="">Select Language</option>
+                                            <option value="Bengali">Bengali</option>
+                                            <option value="Hindi">Hindi</option>
+                                            <option value="English">English</option>
+                                            <option value="Urdu">Urdu</option>
+                                            <option value="Assamese">Assamese</option>
+                                            <option value="Odia">Odia</option>
+                                            <option value="Sanskrit">Sanskrit</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Religion</label>
+                                        <select name="religion" value={formData.religion} onChange={handleChange} className="form-control">
+                                            <option value="">Select Religion</option>
+                                            <option value="Hindu">Hindu</option>
+                                            <option value="Muslim">Muslim</option>
+                                            <option value="Sikh">Sikh</option>
+                                            <option value="Christian">Christian</option>
+                                            <option value="Buddhist">Buddhist</option>
+                                            <option value="Jain">Jain</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
                                     <div className="form-group">
                                         <label>Caste</label>
                                         <select name="caste" value={formData.caste} onChange={handleChange} className="form-control">
@@ -345,7 +370,48 @@ const AdmissionForm = () => {
                                         <textarea name="address" value={formData.address} onChange={handleChange} className="form-control" rows="2" required />
                                     </div>
                                     <div className="form-group"><label>City</label><input type="text" name="city" value={formData.city} onChange={handleChange} className="form-control" /></div>
-                                    <div className="form-group"><label>State</label><input type="text" name="state" value={formData.state} onChange={handleChange} className="form-control" /></div>
+                                    <div className="form-group">
+                                        <label>State</label>
+                                        <select name="state" value={formData.state} onChange={handleChange} className="form-control">
+                                            <option value="">Select State</option>
+                                            <option value="West Bengal">West Bengal</option>
+                                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                            <option value="Assam">Assam</option>
+                                            <option value="Bihar">Bihar</option>
+                                            <option value="Chhattisgarh">Chhattisgarh</option>
+                                            <option value="Goa">Goa</option>
+                                            <option value="Gujarat">Gujarat</option>
+                                            <option value="Haryana">Haryana</option>
+                                            <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                            <option value="Jharkhand">Jharkhand</option>
+                                            <option value="Karnataka">Karnataka</option>
+                                            <option value="Kerala">Kerala</option>
+                                            <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                            <option value="Maharashtra">Maharashtra</option>
+                                            <option value="Manipur">Manipur</option>
+                                            <option value="Meghalaya">Meghalaya</option>
+                                            <option value="Mizoram">Mizoram</option>
+                                            <option value="Nagaland">Nagaland</option>
+                                            <option value="Odisha">Odisha</option>
+                                            <option value="Punjab">Punjab</option>
+                                            <option value="Rajasthan">Rajasthan</option>
+                                            <option value="Sikkim">Sikkim</option>
+                                            <option value="Tamil Nadu">Tamil Nadu</option>
+                                            <option value="Telangana">Telangana</option>
+                                            <option value="Tripura">Tripura</option>
+                                            <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                            <option value="Uttarakhand">Uttarakhand</option>
+                                            <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                                            <option value="Chandigarh">Chandigarh</option>
+                                            <option value="Dadra and Nagar Haveli and Daman and Diu">Dadra and Nagar Haveli and Daman and Diu</option>
+                                            <option value="Delhi">Delhi</option>
+                                            <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                            <option value="Ladakh">Ladakh</option>
+                                            <option value="Lakshadweep">Lakshadweep</option>
+                                            <option value="Puducherry">Puducherry</option>
+                                        </select>
+                                    </div>
                                     <div className="form-group"><label>PIN Code</label><input type="text" name="postal_code" value={formData.postal_code} onChange={handleChange} className="form-control" /></div>
 
                                     <div className="form-group" style={{ gridColumn: 'span 2' }}>

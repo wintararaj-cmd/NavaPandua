@@ -156,6 +156,7 @@ class AdmissionApplication(BaseModel):
         choices=[
             ('SUBMITTED', 'Submitted'),
             ('UNDER_REVIEW', 'Under Review'),
+            ('INTERVIEW_SCHEDULED', 'Interview Scheduled'),
             ('SELECTED', 'Selected'),
             ('REJECTED', 'Rejected'),
             ('ADMITTED', 'Admitted'),

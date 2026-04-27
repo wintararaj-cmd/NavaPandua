@@ -10,7 +10,7 @@ const Navbar = () => {
         <div className="container">
           <div className="topbar-left">
             <span className="topbar-item">
-              <Mail /> info@navadaya.org
+              <Mail /> info@nabodaya.org
             </span>
             <span className="topbar-item">
               <Phone /> +91 98765 43210
@@ -30,10 +30,10 @@ const Navbar = () => {
           {/* Logo Block - Yellow, overlapping */}
           <div className="logo-wrapper">
             <Link to="hero" smooth={true} duration={500} className="logo-block">
-              <img src="/logo.png" alt="Navadaya Logo" />
+              <img src="/logo.png" alt="Nabodaya Logo" />
             </Link>
             <div className="brand-text">
-              <span className="name">Navadaya</span>
+              <span className="name">Nabodaya</span>
               <span className="tagline">Education Trust</span>
             </div>
           </div>
@@ -57,7 +57,7 @@ const Navbar = () => {
               Admission
             </a>
             <a 
-              href={`${import.meta.env.VITE_ADMIN_PORTAL_URL || (import.meta.env.PROD ? 'https://admin.navadaya.in' : 'http://localhost:5173')}/login`} 
+              href={`${import.meta.env.VITE_ADMIN_PORTAL_URL || (import.meta.env.PROD ? 'https://admin.nabodaya.in' : 'http://localhost:5173')}/login`} 
               className="btn btn-outline-dark"
               style={{ padding: '10px 20px', fontSize: '0.8rem' }}
             >

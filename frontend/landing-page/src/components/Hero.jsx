@@ -23,7 +23,7 @@ const Hero = () => {
               for all children.
             </h1>
             <p className="hero-text">
-              Navadaya Education Trust works to create a world where every child 
+              Nabodaya Education Trust works to create a world where every child 
               has the opportunity to learn, grow, and thrive — regardless of 
               their background or geography.
             </p>
@@ -57,7 +57,7 @@ const Hero = () => {
             
             {/* Floating Logo Badge */}
             <div className="hero-logo-badge animate-float">
-              <img src="/logo.png" alt="Navadaya Trust" />
+              <img src="/logo.png" alt="Nabodaya Trust" />
             </div>
           </motion.div>
         </div>

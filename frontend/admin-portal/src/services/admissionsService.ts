@@ -72,5 +72,15 @@ export const admissionsService = {
     deleteApplication: async (id: string) => {
         const response = await api.delete(`/admissions/applications/${id}/`);
         return response.data;
+    },
+
+    downloadApplicationForm: async (id: string) => {
+        const response = await api.get(`/admissions/applications/${id}/download_form/`, { responseType: 'blob' });
+        return response.data;
+    },
+
+    downloadApplicationInvoice: async (id: string) => {
+        const response = await api.get(`/admissions/applications/${id}/download_invoice/`, { responseType: 'blob' });
+        return response.data;
     }
 };
