@@ -9,6 +9,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 
@@ -20,6 +21,17 @@ def reset_superuser():
     admin_username = 'admin'
     admin_email = 'admin@admin.com'
     admin_password = 'admin'
+
+    print(f"\nChecking for existing users with username '{admin_username}' or email '{admin_email}'...")
+    try:
+        conflicting_users = User.objects.filter(models.Q(username=admin_username) | models.Q(email=admin_email))
+        for i, user in enumerate(conflicting_users):
+            user.username = f"conflict_user_{i}_{user.username}"
+            user.email = f"conflict_{i}_{user.email}"
+            user.save()
+            print(f"Renamed conflicting user ID {user.id}")
+    except Exception as e:
+        print(f"Warning: Could not rename conflicting users: {e}")
 
     try:
         if superusers:
