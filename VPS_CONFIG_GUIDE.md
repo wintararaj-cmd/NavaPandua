@@ -103,9 +103,9 @@ curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
     ```env
     DEBUG=False
     SECRET_KEY=euw1YBOD-4xDP2ny2zvDqYsADg3VYbZMFMdnZg3wLLxNW1GNgFc_HK2iybKmLI6p3fo
-    ALLOWED_HOSTS=navadaya.in,nabodaya.in,api.navadaya.in,admin.navadaya.in,localhost,127.0.0.1
-    CORS_ALLOWED_ORIGINS=https://navadaya.in,https://nabodaya.in,https://admin.navadaya.in
-    CSRF_TRUSTED_ORIGINS=https://navadaya.in,https://nabodaya.in,https://admin.navadaya.in
+    ALLOWED_HOSTS=navadaya.in,nabodaya.in,api.navadaya.in,admin.navadaya.in,admin.nabodaya.in,localhost,127.0.0.1
+    CORS_ALLOWED_ORIGINS=https://navadaya.in,https://nabodaya.in,https://admin.navadaya.in,https://admin.nabodaya.in
+    CSRF_TRUSTED_ORIGINS=https://navadaya.in,https://nabodaya.in,https://admin.navadaya.in,https://admin.nabodaya.in
     
     # Internal Database Connection
     DATABASE_URL=postgresql://school_user:school123@postgres:5432/school_mgmt_db
