@@ -49,13 +49,15 @@ def reset_superuser():
             new_user = User.objects.create_superuser(
                 username=admin_username,
                 email=admin_email,
-                password=admin_password
+                password=admin_password,
+                role='SUPER_ADMIN'
             )
         except TypeError:
             # Fallback for email-only user models
             new_user = User.objects.create_superuser(
                 email=admin_email,
-                password=admin_password
+                password=admin_password,
+                role='SUPER_ADMIN'
             )
             admin_username = "(None - Email based login)"
         
