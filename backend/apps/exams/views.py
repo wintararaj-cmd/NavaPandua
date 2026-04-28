@@ -200,15 +200,54 @@ class ExamResultViewSet(ExamBaseViewSet):
     filterset_fields = ['exam_schedule', 'student', 'grade']
     search_fields = ['student__first_name', 'student__last_name']
 
-    @action(detail=False, methods=['get'], url_path='my-results')
-    def my_results(self, request):
-        user = request.user
-        if user.role == 'STUDENT':
-            student = user.student_profile
-            results = self.get_queryset().filter(student=student)
-            serializer = self.get_serializer(results, many=True)
-            return Response(serializer.data)
-        return Response({'error': 'User is not a student'}, status=status.HTTP_403_FORBIDDEN)
+    @action(detail=False, methods=['post'], url_path='bulk-save')
+    def bulk_save_results(self, request):
+        from django.db import transaction
+        
+        schedule_id = request.data.get('exam_schedule')
+        results_data = request.data.get('results', [])
+        
+        if not schedule_id:
+            return Response({"error": "exam_schedule ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            schedule = ExamSchedule.objects.get(id=schedule_id, school=request.user.school)
+        except ExamSchedule.DoesNotExist:
+            return Response({"error": "Exam schedule not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+        success_count = 0
+        with transaction.atomic():
+            for res in results_data:
+                student_id = res.get('student_id')
+                marks = res.get('marks_obtained', 0)
+                remarks = res.get('remarks', '')
+                is_absent = res.get('is_absent', False)
+                
+                if not student_id:
+                    continue
+                    
+                result, created = ExamResult.objects.get_or_create(
+                    school=request.user.school,
+                    exam_schedule=schedule,
+                    student_id=student_id,
+                    defaults={
+                        'marks_obtained': marks,
+                        'remarks': remarks,
+                        'is_absent': is_absent
+                    }
+                )
+                
+                if not created:
+                    result.marks_obtained = marks
+                    result.remarks = remarks
+                    result.is_absent = is_absent
+                
+                # Calculate grade
+                result.grade = GradingService.calculate_grade(result)
+                result.save()
+                success_count += 1
+                
+        return Response({"message": f"Successfully saved {success_count} results"})
 
 
     def perform_create(self, serializer):

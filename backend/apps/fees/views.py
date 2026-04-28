@@ -64,7 +64,28 @@ class FeeAllocationViewSet(FeeBaseViewSet):
     queryset = FeeAllocation.objects.all()
     serializer_class = FeeAllocationSerializer
     filterset_fields = ['student', 'status', 'fee_master']
-    search_fields = ['student__first_name', 'student__last_name']
+    search_fields = ['student__user__first_name', 'student__user__last_name']
+
+    @action(detail=False, methods=['get'], url_path='pending-students')
+    def pending_students(self, request):
+        from django.db.models import Sum, F, Count
+        school = request.user.school
+        
+        pending = FeeAllocation.objects.filter(
+            school=school,
+            status__in=['UNPAID', 'PARTIAL']
+        ).values(
+            'student__id',
+            'student__user__first_name',
+            'student__user__last_name',
+            'student__admission_number',
+            'student__current_class__name'
+        ).annotate(
+            total_due=Sum(F('amount') - F('paid_amount')),
+            pending_count=Count('id')
+        ).order_by('-total_due')
+
+        return Response(pending)
 
     @action(detail=False, methods=['get'], url_path='student-ledger')
     def student_ledger(self, request):
@@ -134,6 +155,29 @@ class FeeAllocationViewSet(FeeBaseViewSet):
             serializer = self.get_serializer(allocations, many=True)
             return Response(serializer.data)
         return Response({'error': 'User is not a student'}, status=status.HTTP_403_FORBIDDEN)
+
+    @action(detail=False, methods=['get'], url_path='summary')
+    def summary(self, request):
+        from django.db.models import Sum
+        school = request.user.school
+        
+        allocations = FeeAllocation.objects.filter(school=school)
+        total_expected = allocations.aggregate(Sum('amount'))['amount__sum'] or 0
+        total_collected = allocations.aggregate(Sum('paid_amount'))['paid_amount__sum'] or 0
+        total_pending = total_expected - total_collected
+        
+        # Payment mode distribution
+        payments = FeePayment.objects.filter(school=school)
+        mode_dist = payments.values('payment_mode').annotate(total=Sum('amount_paid'))
+        
+        return Response({
+            'total_expected': total_expected,
+            'total_collected': total_collected,
+            'total_pending': total_pending,
+            'mode_distribution': mode_dist,
+            'collection_percentage': round((total_collected / total_expected * 100), 2) if total_expected > 0 else 0
+        })
+
 
 
     @action(detail=True, methods=['post'], url_path='pay')
@@ -218,6 +262,12 @@ class FeeAllocationViewSet(FeeBaseViewSet):
         else:
             return Response({"error": "Signature verification failed"}, status=status.HTTP_400_BAD_REQUEST)
 
+import io
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A5
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
+
 class FeePaymentViewSet(FeeBaseViewSet):
     queryset = FeePayment.objects.all()
     serializer_class = FeePaymentSerializer
@@ -228,7 +278,6 @@ class FeePaymentViewSet(FeeBaseViewSet):
         student = allocation.student
         
         buffer = io.BytesIO()
-        from reportlab.lib.pagesizes import A5
         doc = SimpleDocTemplate(buffer, pagesize=A5)
         elements = []
         styles = getSampleStyleSheet()
@@ -239,10 +288,13 @@ class FeePaymentViewSet(FeeBaseViewSet):
         elements.append(Paragraph("<hr/>", styles['Normal']))
         
         # Data
+        # Safely handle missing section
+        section_name = student.section.name if hasattr(student, 'section') and student.section else "N/A"
+        
         data = [
             ["Receipt No:", f"RCP-{payment.id}", "Date:", str(payment.payment_date)],
             ["Student Name:", student.user.get_full_name(), "ID:", student.admission_number],
-            ["Class:", f"{student.current_class.name} {student.section.name}", "", ""],
+            ["Class:", f"{student.current_class.name} {section_name}", "", ""],
             ["Fee Type:", allocation.fee_master.fee_type.name, "", ""],
             ["Payment Mode:", payment.payment_mode, "Ref:", payment.reference_number or "-"],
             ["Amount Paid:", f"INR {payment.amount_paid}", "", ""],
@@ -266,41 +318,34 @@ class FeePaymentViewSet(FeeBaseViewSet):
         return buffer
 
     def perform_create(self, serializer):
-        with transaction.atomic():
-            payment = serializer.save(school=self.request.user.school)
-            
-            # Update allocation status
-            allocation = payment.allocation
-            allocation.paid_amount += payment.amount_paid
-            if allocation.remaining_amount <= 0:
-                allocation.status = 'PAID'
-            else:
-                allocation.status = 'PARTIAL'
-            allocation.save()
+        # Allocation update is already handled in FeePaymentSerializer.create
+        payment = serializer.save(school=self.request.user.school)
+        allocation = payment.allocation
 
-            # Send Email Receipt
-            try:
-                from django.core.mail import EmailMessage
-                from django.conf import settings
-                
-                student = allocation.student
-                email_target = student.father_email or student.mother_email or student.user.email
-                
-                if email_target:
-                    pdf_buffer = self._generate_receipt_pdf(payment)
-                    email = EmailMessage(
-                        subject=f"Fee Payment Receipt - {payment.id}",
-                        body=f"Dear Parent,\n\nThank you for the payment of INR {payment.amount_paid} towards {allocation.fee_master.fee_type.name}. Please find the receipt attached.\n\nRegards,\nAccounts Department\n{payment.school.name}",
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        to=[email_target],
-                    )
-                    email.attach(f"Receipt_{payment.id}.pdf", pdf_buffer.getvalue(), 'application/pdf')
-                    email.send(fail_silently=True)
-            except Exception as e:
-                print(f"Failed to send fee receipt email: {e}")
+        # Send Email Receipt
+        try:
+            from django.core.mail import EmailMessage
+            from django.conf import settings
+            
+            student = allocation.student
+            email_target = student.father_email or student.mother_email or student.user.email
+            
+            if email_target:
+                pdf_buffer = self._generate_receipt_pdf(payment)
+                email = EmailMessage(
+                    subject=f"Fee Payment Receipt - {payment.id}",
+                    body=f"Dear Parent,\n\nThank you for the payment of INR {payment.amount_paid} towards {allocation.fee_master.fee_type.name}. Please find the receipt attached.\n\nRegards,\nAccounts Department\n{payment.school.name}",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[email_target],
+                )
+                email.attach(f"Receipt_{payment.id}.pdf", pdf_buffer.getvalue(), 'application/pdf')
+                email.send(fail_silently=True)
+        except Exception as e:
+            print(f"Failed to send fee receipt email: {e}")
 
     @action(detail=True, methods=['get'], url_path='receipt')
     def download_receipt(self, request, pk=None):
+        from django.http import HttpResponse
         payment = self.get_object()
         pdf_buffer = self._generate_receipt_pdf(payment)
         
@@ -308,3 +353,26 @@ class FeePaymentViewSet(FeeBaseViewSet):
         response = HttpResponse(pdf_buffer, content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
+
+    @action(detail=True, methods=['post'], url_path='cancel')
+    def cancel_payment(self, request, pk=None):
+        payment = self.get_object()
+        reason = request.data.get('reason', 'No reason provided')
+        
+        with transaction.atomic():
+            # 1. Update allocation
+            allocation = payment.allocation
+            allocation.paid_amount -= payment.amount_paid
+            if allocation.paid_amount <= 0:
+                allocation.status = 'UNPAID'
+            else:
+                allocation.status = 'PARTIAL'
+            allocation.save()
+            
+            # 2. Mark payment as canceled
+            payment_info = f"Canceled: {payment.amount_paid} for {payment.allocation.student.user.get_full_name()}"
+            payment.delete()
+            
+            return Response({"message": "Payment canceled successfully", "details": payment_info})
+
+

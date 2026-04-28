@@ -1,50 +1,47 @@
-
 import api from './api';
 
 export interface FeeGroup {
     id: string;
-    school: string;
     name: string;
-    description?: string;
+    description: string;
 }
 
 export interface FeeType {
     id: string;
-    school: string;
     name: string;
-    description?: string;
+    description: string;
 }
 
 export interface FeeMaster {
     id: string;
-    school: string;
     fee_group: string;
-    fee_group_name?: string;
     fee_type: string;
-    fee_type_name?: string;
+    target_class?: string;
     amount: string;
     due_date: string;
     fine_type: 'NONE' | 'FIXED' | 'PERCENTAGE';
     fine_amount: string;
+    
+    // Details for UI
+    fee_group_name?: string;
+    fee_type_name?: string;
+    class_name?: string;
 }
 
 export interface FeeAllocation {
     id: string;
-    school: string;
     student: string;
     student_name?: string;
     fee_master: string;
-    fee_type_name?: string;
-    due_date?: string;
     amount: string;
     paid_amount: string;
-    remaining_amount?: string;
     status: 'UNPAID' | 'PARTIAL' | 'PAID';
+    due_date: string;
+    remaining_amount: number;
 }
 
 export interface FeePayment {
     id: string;
-    school: string;
     allocation: string;
     amount_paid: string;
     payment_date: string;
@@ -54,78 +51,77 @@ export interface FeePayment {
 }
 
 export const feeService = {
-    // Fee Groups
-    getGroups: async (params?: any) => {
-        const response = await api.get('/fees/groups/', { params });
+    // Master Data
+    getFeeGroups: async () => {
+        const response = await api.get('/fees/groups/');
         return response.data;
     },
-    createGroup: async (data: any) => {
+    createFeeGroup: async (data: Partial<FeeGroup>) => {
         const response = await api.post('/fees/groups/', data);
         return response.data;
     },
 
-    // Fee Types
-    getTypes: async (params?: any) => {
-        const response = await api.get('/fees/types/', { params });
+    getFeeTypes: async () => {
+        const response = await api.get('/fees/types/');
         return response.data;
     },
-    createType: async (data: any) => {
+    createFeeType: async (data: Partial<FeeType>) => {
         const response = await api.post('/fees/types/', data);
         return response.data;
     },
 
     // Fee Masters
-    getMasters: async (params?: any) => {
+    getFeeMasters: async (params?: any) => {
         const response = await api.get('/fees/masters/', { params });
         return response.data;
     },
-    createMaster: async (data: any) => {
+    createFeeMaster: async (data: Partial<FeeMaster>) => {
         const response = await api.post('/fees/masters/', data);
         return response.data;
     },
 
-    // Fee Allocations
+    // Allocations
     getAllocations: async (params?: any) => {
         const response = await api.get('/fees/allocations/', { params });
         return response.data;
     },
-    createAllocation: async (data: any) => {
-        const response = await api.post('/fees/allocations/', data);
+    allocateFees: async (data: { student_ids: string[], fee_master_ids: string[] }) => {
+        const response = await api.post('/fees/allocations/bulk_allocate/', data);
         return response.data;
     },
-
-    // Fee Payments
-    getPayments: async (params?: any) => {
-        const response = await api.get('/fees/payments/', { params });
-        return response.data;
-    },
-    collectPayment: async (data: {
-        allocation: string;
-        amount_paid: number | string;
-        payment_mode: string;
-        reference_number?: string;
-        notes?: string;
-    }) => {
-        const response = await api.post('/fees/payments/', data);
-        return response.data;
-    },
-
     bulkAllocate: async (masterId: string, classId?: string) => {
         const response = await api.post(`/fees/masters/${masterId}/bulk-allocate/`, { class_id: classId });
         return response.data;
     },
-
     getStudentLedger: async (studentId: string) => {
-        const response = await api.get('/fees/allocations/student-ledger/', {
-            params: { student_id: studentId }
-        });
+        const response = await api.get('/fees/allocations/student-ledger/', { params: { student_id: studentId } });
         return response.data;
     },
 
+    // Payments
+    getPayments: async (params?: any) => {
+        const response = await api.get('/fees/payments/', { params });
+        return response.data;
+    },
+    collectFee: async (data: Partial<FeePayment>) => {
+        const response = await api.post('/fees/payments/', data);
+        return response.data;
+    },
     downloadReceipt: async (paymentId: string) => {
         const response = await api.get(`/fees/payments/${paymentId}/receipt/`, {
             responseType: 'blob'
         });
         return response.data;
+    },
+
+    getFeeSummary: async () => {
+        const response = await api.get('/fees/allocations/summary/');
+        return response.data;
+    },
+    getPendingStudents: async () => {
+        const response = await api.get('/fees/allocations/pending-students/');
+        return response.data;
     }
 };
+
+

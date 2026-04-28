@@ -7,6 +7,7 @@ import FocusAreas from './components/FocusAreas';
 import Impact from './components/Impact';
 import Footer from './components/Footer';
 import AdmissionForm from './components/AdmissionForm';
+import SchoolPage from './pages/SchoolPage';
 import { Heart } from 'lucide-react';
 
 function LandingPage() {
@@ -44,12 +45,11 @@ function App() {
   return (
     <BrowserRouter>
       <div className="App">
-        <Navbar />
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/admission" element={<AdmissionForm />} />
+          <Route path="/" element={<><Navbar /><LandingPage /><Footer /></>} />
+          <Route path="/admission" element={<><Navbar /><AdmissionForm /><Footer /></>} />
+          <Route path="/school/:schoolCode" element={<SchoolPage />} />
         </Routes>
-        <Footer />
         <Toaster position="top-right" />
       </div>
     </BrowserRouter>

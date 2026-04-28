@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, Save } from 'lucide-react';
 import { feeService, type FeeGroup, type FeeType } from '../../services/feeService';
+import { classService, type Class } from '../../services/classService';
 import toast from 'react-hot-toast';
 
 interface FeeMasterModalProps {
@@ -14,10 +14,12 @@ export default function FeeMasterModal({ isOpen, onClose, onSuccess }: FeeMaster
     const [loading, setLoading] = useState(false);
     const [groups, setGroups] = useState<FeeGroup[]>([]);
     const [types, setTypes] = useState<FeeType[]>([]);
+    const [classes, setClasses] = useState<Class[]>([]);
 
     const [formData, setFormData] = useState({
         fee_group: '',
         fee_type: '',
+        target_class: '',
         amount: '',
         due_date: '',
         fine_type: 'NONE',
@@ -32,14 +34,16 @@ export default function FeeMasterModal({ isOpen, onClose, onSuccess }: FeeMaster
 
     const fetchDependencies = async () => {
         try {
-            const [groupsData, typesData] = await Promise.all([
-                feeService.getGroups(),
-                feeService.getTypes()
+            const [groupsData, typesData, classesData] = await Promise.all([
+                feeService.getFeeGroups(),
+                feeService.getFeeTypes(),
+                classService.getClasses()
             ]);
             setGroups(groupsData.results || []);
             setTypes(typesData.results || []);
+            setClasses(classesData.results || []);
         } catch (error) {
-            toast.error('Failed to load fee groups or types');
+            toast.error('Failed to load dependencies');
         }
     };
 
@@ -47,10 +51,11 @@ export default function FeeMasterModal({ isOpen, onClose, onSuccess }: FeeMaster
         e.preventDefault();
         try {
             setLoading(true);
-            await feeService.createMaster({
+            await feeService.createFeeMaster({
                 ...formData,
-                amount: parseFloat(formData.amount),
-                fine_amount: parseFloat(formData.fine_amount)
+                target_class: formData.target_class || undefined,
+                amount: formData.amount,
+                fine_amount: formData.fine_amount
             });
             toast.success('Fee structure created successfully');
             onSuccess();
@@ -58,6 +63,7 @@ export default function FeeMasterModal({ isOpen, onClose, onSuccess }: FeeMaster
             setFormData({
                 fee_group: '',
                 fee_type: '',
+                target_class: '',
                 amount: '',
                 due_date: '',
                 fine_type: 'NONE',
@@ -75,7 +81,7 @@ export default function FeeMasterModal({ isOpen, onClose, onSuccess }: FeeMaster
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div className="fixed inset-0 transition-opacity" aria-hidden="true" onClick={onClose}>
                     <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
                 </div>
 
@@ -90,57 +96,76 @@ export default function FeeMasterModal({ isOpen, onClose, onSuccess }: FeeMaster
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="grid grid-cols-1 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Fee Group</label>
+                                        <select
+                                            className="w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                                            required
+                                            value={formData.fee_group}
+                                            onChange={(e) => setFormData({ ...formData, fee_group: e.target.value })}
+                                        >
+                                            <option value="">Select Group</option>
+                                            {groups.map(g => (
+                                                <option key={g.id} value={g.id}>{g.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Fee Type</label>
+                                        <select
+                                            className="w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                                            required
+                                            value={formData.fee_type}
+                                            onChange={(e) => setFormData({ ...formData, fee_type: e.target.value })}
+                                        >
+                                            <option value="">Select Type</option>
+                                            {types.map(t => (
+                                                <option key={t.id} value={t.id}>{t.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Fee Group</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Target Class (Optional)</label>
                                     <select
                                         className="w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                                        required
-                                        value={formData.fee_group}
-                                        onChange={(e) => setFormData({ ...formData, fee_group: e.target.value })}
+                                        value={formData.target_class}
+                                        onChange={(e) => setFormData({ ...formData, target_class: e.target.value })}
                                     >
-                                        <option value="">Select Group</option>
-                                        {groups.map(g => (
-                                            <option key={g.id} value={g.id}>{g.name}</option>
+                                        <option value="">All Classes (Global Fee)</option>
+                                        {classes.map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
                                         ))}
                                     </select>
+                                    <p className="mt-1 text-[10px] text-gray-400">If left empty, this fee can be allocated to any class or student.</p>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Fee Type</label>
-                                    <select
-                                        className="w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                                        required
-                                        value={formData.fee_type}
-                                        onChange={(e) => setFormData({ ...formData, fee_type: e.target.value })}
-                                    >
-                                        <option value="">Select Type</option>
-                                        {types.map(t => (
-                                            <option key={t.id} value={t.id}>{t.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
+                                        <input
+                                            type="number"
+                                            className="w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500 font-bold"
+                                            placeholder="0.00"
+                                            required
+                                            value={formData.amount}
+                                            onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                                        />
+                                    </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
-                                    <input
-                                        type="number"
-                                        className="w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                                        placeholder="0.00"
-                                        required
-                                        value={formData.amount}
-                                        onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-                                    <input
-                                        type="date"
-                                        className="w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                                        required
-                                        value={formData.due_date}
-                                        onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                                    />
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                                        <input
+                                            type="date"
+                                            className="w-full px-3 py-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                                            required
+                                            value={formData.due_date}
+                                            onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
@@ -180,7 +205,7 @@ export default function FeeMasterModal({ isOpen, onClose, onSuccess }: FeeMaster
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
+                                    className="flex items-center gap-2 px-6 py-2 text-sm font-bold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors shadow-lg"
                                 >
                                     {loading ? (
                                         <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

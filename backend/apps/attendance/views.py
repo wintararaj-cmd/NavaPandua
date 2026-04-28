@@ -132,6 +132,35 @@ class TeacherAttendanceViewSet(AttendanceBaseViewSet):
     filterset_fields = ['teacher', 'date', 'status']
     search_fields = ['teacher__first_name', 'teacher__last_name']
 
+    @action(detail=False, methods=['post'], url_path='bulk-save')
+    def bulk_save(self, request):
+        attendance_data = request.data.get('attendance_data', [])
+        date = request.data.get('date')
+        school = request.user.school
+        
+        if not date:
+            return Response({'error': 'Date is required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        attendances = []
+        for item in attendance_data:
+            teacher_id = item.get('teacher')
+            status_val = item.get('status', 'PRESENT')
+            remarks = item.get('remarks', '')
+            
+            attendance, created = TeacherAttendance.objects.update_or_create(
+                school=school,
+                teacher_id=teacher_id,
+                date=date,
+                defaults={
+                    'status': status_val,
+                    'remarks': remarks
+                }
+            )
+            attendances.append(attendance)
+            
+        return Response({'message': f'Attendance saved for {len(attendances)} staff members'})
+
+
 class LeaveTypeViewSet(AttendanceBaseViewSet):
     queryset = LeaveType.objects.all()
     serializer_class = LeaveTypeSerializer

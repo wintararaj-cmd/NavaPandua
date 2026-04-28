@@ -70,7 +70,7 @@ class FeeAllocation(BaseModel):
         return self.amount - self.paid_amount
 
     def __str__(self):
-        name = self.student.first_name if self.student else (self.application.first_name if self.application else "Unknown")
+        name = self.student.user.first_name if self.student else (self.application.first_name if self.application else "Unknown")
         return f"{name} - {self.fee_master.fee_type.name}"
 
     class Meta:

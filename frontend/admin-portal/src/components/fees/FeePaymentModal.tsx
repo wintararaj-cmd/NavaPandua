@@ -32,7 +32,7 @@ export default function FeePaymentModal({ isOpen, allocation, onClose, onSuccess
 
         try {
             setLoading(true);
-            await feeService.collectPayment({
+            await feeService.collectFee({
                 allocation: allocation.id,
                 amount_paid: parseFloat(formData.amount_paid),
                 payment_mode: formData.payment_mode,

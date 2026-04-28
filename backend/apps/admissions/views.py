@@ -31,6 +31,8 @@ class AdmissionEnquiryViewSet(viewsets.ModelViewSet):
         else:
              serializer.save()
 
+from .services import AdmissionService
+
 class AdmissionApplicationViewSet(viewsets.ModelViewSet):
     queryset = AdmissionApplication.objects.all()
     serializer_class = AdmissionApplicationSerializer
@@ -47,153 +49,24 @@ class AdmissionApplicationViewSet(viewsets.ModelViewSet):
            queryset = queryset.filter(school=user.school)
         return queryset
 
-    def _handle_admission_fee(self, application):
-        from apps.fees.models import FeeMaster, FeeAllocation
-        # Look for Admission Fee for this specific class
-        admission_fee_master = FeeMaster.objects.filter(
-            school=application.school,
-            target_class=application.target_class,
-            fee_type__name__icontains='Admission'
-        ).first()
-        
-        if admission_fee_master:
-            allocation, created = FeeAllocation.objects.get_or_create(
-                school=application.school,
-                application=application,
-                fee_master=admission_fee_master,
-                defaults={
-                    'amount': admission_fee_master.amount,
-                    'status': 'PAID' if application.application_fee_paid else 'UNPAID',
-                    'paid_amount': admission_fee_master.amount if application.application_fee_paid else 0
-                }
-            )
-            if not created:
-                # Sync payment status if changed
-                if application.application_fee_paid and allocation.status != 'PAID':
-                    allocation.status = 'PAID'
-                    allocation.paid_amount = allocation.amount
-                    allocation.save()
-                elif not application.application_fee_paid and allocation.status == 'PAID':
-                    allocation.status = 'UNPAID'
-                    allocation.paid_amount = 0
-                    allocation.save()
-
     def perform_create(self, serializer):
-        if self.request.user.school:
-            application = serializer.save(school=self.request.user.school)
-        else:
-            application = serializer.save()
-        self._handle_admission_fee(application)
+        from django.db import transaction
+        with transaction.atomic():
+            if self.request.user.school:
+                application = serializer.save(school=self.request.user.school)
+            else:
+                application = serializer.save()
+            AdmissionService.handle_admission_fee(application)
+            AdmissionService.ensure_student_record(application)
 
     def perform_update(self, serializer):
-        instance = serializer.instance
-        old_status = instance.status
-        new_status = serializer.validated_data.get('status', old_status)
-        
-        application = serializer.save()
-        self._handle_admission_fee(application)
-        
-        
-        # If status changed to ADMITTED, create the Student and User records
-        if old_status != 'ADMITTED' and new_status == 'ADMITTED':
-            from django.db import transaction
-            with transaction.atomic():
-                from apps.accounts.models import User
-                from apps.students.models import Student
-                from django.utils import timezone
-                
-                username = f"app_{application.application_number.lower()}"
-                email = application.father_email or f"{username}@school.local"
-                
-                user, created = User.objects.get_or_create(
-                    email=email,
-                    defaults={
-                        'username': username,
-                        'first_name': application.first_name,
-                        'last_name': application.last_name,
-                        'role': 'STUDENT',
-                        'school': application.school,
-                    }
-                )
-                if created:
-                    user.set_password('Welcome@123')
-                    user.save()
-                
-                Student.objects.create(
-                    user=user,
-                    school=application.school,
-                    admission_number=application.application_number,
-                    current_class=application.target_class,
-                    admission_date=application.admission_date or timezone.now().date(),
-                    first_name=application.first_name,
-                    middle_name=application.middle_name,
-                    last_name=application.last_name,
-                    date_of_birth=application.date_of_birth,
-                    gender=application.gender,
-                    place_of_birth=application.place_of_birth,
-                    mother_tongue=application.mother_tongue,
-                    nationality=application.nationality,
-                    religion=application.religion,
-                    caste=application.caste,
-                    blood_group=application.blood_group,
-                    
-                    father_name=application.father_name,
-                    father_phone=application.father_phone,
-                    father_email=application.father_email,
-                    father_qualification=application.father_qualification,
-                    father_college=application.father_college,
-                    father_occupation=application.father_occupation,
-                    father_occupation_type=application.father_occupation_type,
-                    father_organisation=application.father_organisation,
-                    father_designation=application.father_designation,
-                    father_income=application.father_income,
-                    father_office_address=application.father_office_address,
-                    
-                    mother_name=application.mother_name,
-                    mother_phone=application.mother_phone,
-                    mother_email=application.mother_email,
-                    mother_qualification=application.mother_qualification,
-                    mother_college=application.mother_college,
-                    mother_associated_with=application.mother_associated_with,
-                    
-                    address=application.address,
-                    city=application.city,
-                    state=application.state,
-                    postal_code=application.postal_code,
-                    
-                    previous_school_name=application.previous_school_name,
-                    previous_school_address=application.previous_school_address,
-                    previous_school_city=application.previous_school_city,
-                    previous_school_state=application.previous_school_state,
-                    previous_school_country=application.previous_school_country,
-                    previous_school_pincode=application.previous_school_pincode,
-                    previous_school_principle_name=application.previous_school_principle_name,
-                    previous_school_board=application.previous_school_board,
-                    previous_school_class=application.previous_school_class,
-                    previous_school_medium=application.previous_school_medium,
-                    
-                    is_single_parent=application.is_single_parent,
-                    legal_guardian=application.legal_guardian,
-                    is_guardian_father=application.is_guardian_father,
-                    is_guardian_mother=application.is_guardian_mother,
-                    
-                    category=application.category,
-                    staff_name=application.staff_name,
-                    staff_id=application.staff_id,
-                    
-                    primary_contact_person=application.primary_contact_person,
-                    primary_contact_phone=application.primary_contact_phone,
-                    relationship_with_student=application.relationship_with_student,
-                    
-                    second_language=application.second_language,
-                    third_language=application.third_language,
-                    academic_performance=application.academic_performance,
-                    
-                    status='ACTIVE',
-                    photo=application.photo,
-                    father_photo=application.father_photo,
-                    mother_photo=application.mother_photo,
-                )
+        from django.db import transaction
+        with transaction.atomic():
+            application = serializer.save()
+            AdmissionService.handle_admission_fee(application)
+            AdmissionService.ensure_student_record(application)
+
+
 
     @action(detail=True, methods=['get'])
     def download_form(self, request, pk=None):
@@ -232,8 +105,7 @@ class PublicAdmissionView(APIView):
         if serializer.is_valid():
             with transaction.atomic():
                 application = serializer.save()
-                
-                # The application is submitted successfully.
+                AdmissionService.handle_admission_fee(application)
                 # Student record will be created later when they come to school and pay the admission fees
                 # and the status is changed to ADMITTED.
                 

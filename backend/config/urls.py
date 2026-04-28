@@ -39,7 +39,9 @@ urlpatterns = [
     path('api/v1/timetables/', include('apps.timetable.urls')),
     path('api/v1/notifications/', include('apps.notifications.urls')),
     path('api/v1/analytics/', include('apps.analytics.urls')),
+    path('api/v1/inventory/', include('apps.inventory.urls')),
 ]
+
 
 # Serve media files in development
 if settings.DEBUG:

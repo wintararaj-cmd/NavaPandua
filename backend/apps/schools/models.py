@@ -187,9 +187,11 @@ class SchoolSettings(BaseModel):
     send_exam_result_sms = models.BooleanField(default=False)
     
     # ID Card Settings
+    application_id_prefix = models.CharField(max_length=10, default='REG')
     student_id_prefix = models.CharField(max_length=10, default='STU')
-    teacher_id_prefix = models.CharField(max_length=10, default='TCH')
+    teacher_id_prefix = models.CharField(max_length=10, default='EMP')
     id_number_length = models.IntegerField(default=6)
+
     
     # ERP Specific Settings
     policy_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
@@ -306,5 +308,56 @@ class MasterData(BaseModel):
         ordering = ['domain', 'description']
         unique_together = [['school', 'domain', 'identifier', 'description']]
     
+
+class SchoolPublicPage(BaseModel):
+    """
+    Public landing page configuration for a school.
+    """
+    school = models.OneToOneField(
+        School,
+        on_delete=models.CASCADE,
+        related_name='public_page'
+    )
+    
+    primary_color = models.CharField(max_length=20, default='#1e40af')
+    secondary_color = models.CharField(max_length=20, default='#1e293b')
+    
+    vision = models.TextField(blank=True)
+    mission = models.TextField(blank=True)
+    
+    about_text = models.TextField(blank=True, help_text="Specific about text for the public page")
+    
+    is_published = models.BooleanField(default=True)
+    
+    class Meta:
+        db_table = 'school_public_pages'
+        verbose_name = 'School Public Page'
+        verbose_name_plural = 'School Public Pages'
+
     def __str__(self):
-        return f"{self.domain}: {self.description}"
+        return f"Public Page for {self.school.name}"
+
+
+class SchoolGalleryImage(BaseModel):
+    """
+    Gallery images for the school's public page.
+    """
+    school_page = models.ForeignKey(
+        SchoolPublicPage,
+        on_delete=models.CASCADE,
+        related_name='gallery_images'
+    )
+    
+    image = models.ImageField(upload_to='schools/gallery/')
+    caption = models.CharField(max_length=200, blank=True)
+    order = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        db_table = 'school_gallery_images'
+        verbose_name = 'School Gallery Image'
+        verbose_name_plural = 'School Gallery Images'
+        ordering = ['order', 'created_at']
+
+    def __str__(self):
+        return f"Image for {self.school_page.school.name} - {self.caption or self.id}"
+

@@ -15,6 +15,8 @@ export interface Student {
     phone?: string;
     date_of_birth: string;
     gender: 'MALE' | 'FEMALE' | 'OTHER';
+
+
     place_of_birth?: string;
     mother_tongue?: string;
     nationality?: string;
@@ -147,10 +149,24 @@ export const studentService = {
         return response.data;
     },
 
-    promoteStudent: async (data: any) => {
-        const response = await api.post('/students/promotions/', data);
+    promoteStudent: async (studentId: string, data: any) => {
+        const response = await api.post(`/students/${studentId}/promote/`, data);
         return response.data;
     },
+    bulkPromote: async (data: { students: string[]; to_class: string; to_session: string; from_session: string; to_section?: string; status?: string }) => {
+        const response = await api.post('/students/bulk-promote/', data);
+        return response.data;
+    },
+
+    importStudents: async (formData: FormData) => {
+        const response = await api.post('/students/import/', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
+
 
     getSLCs: async (studentId: string) => {
         const response = await api.get('/students/slc/', { params: { student: studentId } });

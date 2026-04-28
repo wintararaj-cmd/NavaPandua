@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import {
     Calendar, Users, CheckCircle, XCircle, Clock, Save, Search,
     Plus, ClipboardList, CheckSquare, XSquare, Trash2, ChevronDown,
-    AlertCircle, UserCheck, FileText, UserPlus, BookOpen, GraduationCap
+    AlertCircle, UserCheck, FileText, UserPlus, BookOpen, GraduationCap, Briefcase
 } from 'lucide-react';
+
 import { attendanceService } from '../services/attendanceService';
 import { leaveService, type LeaveApplication, type LeaveType } from '../services/leaveService';
 import { studentService, type Student } from '../services/studentService';
 import { classService, type Class, type Section } from '../services/classService';
+import { teacherService } from '../services/teacherService';
+
 import { useInstitutionTerms } from '../hooks/useInstitutionTerms';
 import toast from 'react-hot-toast';
 
@@ -298,11 +301,136 @@ function LeaveManagement() {
 }
 
 /* ─────────────────────────────────────────────────────────
+   Staff Attendance Tab
+ ───────────────────────────────────────────────────────── */
+function StaffAttendanceTab() {
+    const [loading, setLoading] = useState(false);
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [staffList, setStaffList] = useState<any[]>([]);
+    const [attendanceData, setAttendanceData] = useState<Record<string, { status: string; remarks: string }>>({});
+
+    useEffect(() => { loadStaff(); }, []);
+
+    const loadStaff = async () => {
+        try {
+            setLoading(true);
+            const [staffData, existingAttendance] = await Promise.all([
+                teacherService.getAll(),
+                attendanceService.getTeacherAttendance({ date })
+            ]);
+            const employees = staffData.results || [];
+            setStaffList(employees);
+            
+            const initialData: Record<string, { status: string; remarks: string }> = {};
+            employees.forEach((s: any) => { initialData[s.id] = { status: 'PRESENT', remarks: '' }; });
+            (existingAttendance.results || []).forEach((att: any) => {
+                initialData[att.teacher] = { status: att.status, remarks: att.remarks };
+            });
+            setAttendanceData(initialData);
+        } catch { toast.error('Failed to load staff'); }
+        finally { setLoading(false); }
+    };
+
+    const handleStatusChange = (staffId: string, status: string) => {
+        setAttendanceData(prev => ({ ...prev, [staffId]: { ...prev[staffId], status } }));
+    };
+
+    const handleSave = async () => {
+        try {
+            setLoading(true);
+            const payload = {
+                date,
+                attendance_data: Object.entries(attendanceData).map(([id, data]) => ({ teacher: id, status: data.status, remarks: data.remarks }))
+            };
+            await attendanceService.bulkSaveTeacherAttendance(payload);
+            toast.success('Staff attendance saved');
+        } catch { toast.error('Failed to save staff attendance'); }
+        finally { setLoading(false); }
+    };
+
+    return (
+        <div className="space-y-8">
+            <div className="flex justify-between items-end bg-gray-50/50 p-6 rounded-3xl border border-gray-50">
+                <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Effective Date</label>
+                    <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-500" />
+                        <input type="date" className="w-full pl-10 pr-4 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold outline-none" value={date} onChange={e => setDate(e.target.value)} />
+                    </div>
+                </div>
+                <div className="flex gap-3">
+                    <button onClick={loadStaff} className="bg-white border border-gray-200 text-gray-600 px-8 py-3.5 rounded-2xl hover:bg-gray-50 text-sm font-black transition active:scale-95">
+                        REFRESH
+                    </button>
+                    <button onClick={handleSave} disabled={loading} className="bg-indigo-600 text-white px-8 py-3.5 rounded-2xl hover:bg-indigo-700 flex items-center gap-3 text-sm font-black shadow-xl shadow-indigo-100 transition active:scale-95 disabled:opacity-50">
+                        <Save className="h-5 w-5" /> SAVE STAFF RECORD
+                    </button>
+                </div>
+            </div>
+
+            <div className="border border-gray-100 rounded-[32px] overflow-hidden bg-white shadow-sm">
+                <table className="min-w-full divide-y divide-gray-50">
+                    <thead className="bg-gray-50/50">
+                        <tr>
+                            <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Employee ID</th>
+                            <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Staff Identity</th>
+                            <th className="px-8 py-6 text-center text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Attendance Status</th>
+                            <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                        {loading ? (
+                            <tr><td colSpan={4} className="py-12 text-center">Loading staff...</td></tr>
+                        ) : staffList.length === 0 ? (
+                            <tr><td colSpan={4} className="py-12 text-center text-gray-400">No staff members found.</td></tr>
+                        ) : staffList.map(staff => (
+                            <tr key={staff.id} className="hover:bg-gray-50/50 transition group">
+                                <td className="px-8 py-6 whitespace-nowrap">
+                                    <span className="text-sm font-black text-indigo-600 uppercase">{staff.employee_id}</span>
+                                </td>
+                                <td className="px-8 py-6 whitespace-nowrap">
+                                    <div className="text-sm font-black text-gray-900 leading-none mb-1">{staff.user.first_name} {staff.user.last_name}</div>
+                                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{staff.designation} | {staff.department}</div>
+                                </td>
+                                <td className="px-8 py-6 whitespace-nowrap">
+                                    <div className="flex justify-center gap-3">
+                                        {[
+                                            { label: 'P', value: 'PRESENT', color: 'bg-emerald-500 text-white shadow-emerald-200' },
+                                            { label: 'A', value: 'ABSENT', color: 'bg-red-500 text-white shadow-red-200' },
+                                            { label: 'L', value: 'LATE', color: 'bg-amber-500 text-white shadow-amber-200' },
+                                            { label: 'LV', value: 'ON_LEAVE', color: 'bg-indigo-500 text-white shadow-indigo-200' },
+                                        ].map(opt => (
+                                            <button key={opt.value}
+                                                onClick={() => handleStatusChange(staff.id, opt.value)}
+                                                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${attendanceData[staff.id]?.status === opt.value
+                                                    ? `${opt.color} shadow-lg scale-110 -translate-y-1`
+                                                    : 'bg-gray-50 text-gray-300 hover:bg-gray-100 hover:text-gray-400'}`}
+                                            >
+                                                <span className="text-sm font-black">{opt.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </td>
+                                <td className="px-8 py-6">
+                                    <input type="text" className="w-full px-4 py-2 text-xs font-bold border-gray-100 border-2 rounded-xl focus:border-indigo-200 outline-none transition-all" placeholder="Note..." value={attendanceData[staff.id]?.remarks || ''} onChange={e => setAttendanceData(prev => ({ ...prev, [staff.id]: { ...prev[staff.id], remarks: e.target.value } }))} />
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
+
+
+/* ─────────────────────────────────────────────────────────
    Main Attendance Page
 ───────────────────────────────────────────────────────── */
 export default function Attendance() {
     const terms = useInstitutionTerms();
-    const [activeTab, setActiveTab] = useState<'take' | 'report' | 'leave'>('take');
+    const [activeTab, setActiveTab] = useState<'take' | 'staff' | 'report' | 'leave'>('take');
+
     const [loading, setLoading] = useState(false);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [selectedClass, setSelectedClass] = useState('');
@@ -393,10 +521,12 @@ export default function Attendance() {
     };
 
     const tabs = [
-        { id: 'take', label: 'Take Attendance', icon: Users },
+        { id: 'take', label: `${terms.studentsLabel} Attendance`, icon: Users },
+        { id: 'staff', label: 'Staff Attendance', icon: Briefcase },
         { id: 'report', label: 'Analysis', icon: Calendar },
         { id: 'leave', label: 'Leave Center', icon: ClipboardList },
     ] as const;
+
 
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
@@ -427,7 +557,10 @@ export default function Attendance() {
                 <div className="p-8">
                 {activeTab === 'leave' ? (
                     <LeaveManagement />
+                ) : activeTab === 'staff' ? (
+                    <StaffAttendanceTab />
                 ) : (
+
                     <div className="space-y-10">
                         {/* Filters */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end bg-gray-50/50 p-6 rounded-3xl border border-gray-50">

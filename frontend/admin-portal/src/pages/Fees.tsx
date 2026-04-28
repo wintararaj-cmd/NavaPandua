@@ -33,14 +33,37 @@ export default function Fees() {
     const [studentSubTab, setStudentSubTab] = useState<'dues' | 'ledger'>('dues');
     const [ledger, setLedger] = useState<any[]>([]);
     const [payments, setPayments] = useState<any[]>([]);
+    const [pendingStudents, setPendingStudents] = useState<any[]>([]);
 
     useEffect(() => {
+        fetchSummary();
         if (activeTab === 'config') {
             fetchConfigData();
         } else if (activeTab === 'history') {
             fetchPayments();
+        } else if (activeTab === 'collect') {
+            fetchPendingStudents();
         }
     }, [activeTab]);
+
+    const fetchPendingStudents = async () => {
+        try {
+            const data = await feeService.getPendingStudents();
+            setPendingStudents(data || []);
+        } catch (error) {
+            console.error('Failed to fetch pending students', error);
+        }
+    };
+
+    const fetchSummary = async () => {
+        try {
+            const data = await feeService.getFeeSummary();
+            setSummary(data);
+        } catch (error) {
+            console.error('Failed to fetch summary', error);
+        }
+    };
+
 
     const fetchPayments = async () => {
         try {
@@ -67,9 +90,9 @@ export default function Fees() {
         try {
             setLoading(true);
             const [groupsData, typesData, mastersData] = await Promise.all([
-                feeService.getGroups(),
-                feeService.getTypes(),
-                feeService.getMasters()
+                feeService.getFeeGroups(),
+                feeService.getFeeTypes(),
+                feeService.getFeeMasters()
             ]);
             setGroups(groupsData.results || []);
             setTypes(typesData.results || []);
@@ -142,6 +165,27 @@ export default function Fees() {
                 </div>
             </div>
 
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Total Expected</div>
+                    <div className="text-2xl font-black text-gray-900">₹{summary?.total_expected?.toLocaleString() || '0'}</div>
+                </div>
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-1">Total Collected</div>
+                    <div className="text-2xl font-black text-indigo-600">₹{summary?.total_collected?.toLocaleString() || '0'}</div>
+                </div>
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="text-[10px] font-black text-red-400 uppercase tracking-[0.2em] mb-1">Total Pending</div>
+                    <div className="text-2xl font-black text-red-600">₹{summary?.total_pending?.toLocaleString() || '0'}</div>
+                </div>
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="text-[10px] font-black text-green-400 uppercase tracking-[0.2em] mb-1">Collection Rate</div>
+                    <div className="text-2xl font-black text-green-600">{summary?.collection_percentage || '0'}%</div>
+                </div>
+            </div>
+
+
             <div className="bg-white shadow rounded-lg p-6">
                 {activeTab === 'collect' && (
                     <div className="space-y-6">
@@ -164,6 +208,64 @@ export default function Fees() {
                                 </button>
                             </form>
                         </div>
+
+                        {searchResults.length === 0 && !selectedStudent && pendingStudents.length > 0 && (
+                            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex items-center gap-2 text-indigo-600 px-1">
+                                    <DollarSign className="h-4 w-4" />
+                                    <h3 className="font-bold text-xs uppercase tracking-widest">Students with Pending Dues</h3>
+                                </div>
+                                <div className="border rounded-2xl overflow-hidden bg-white shadow-sm border-gray-100">
+                                    <table className="min-w-full divide-y divide-gray-100">
+                                        <thead className="bg-gray-50/50">
+                                            <tr>
+                                                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Student</th>
+                                                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Class</th>
+                                                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Pending Amount</th>
+                                                <th className="px-6 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-50">
+                                            {pendingStudents.map((student) => (
+                                                <tr key={student.student__id} className="hover:bg-indigo-50/30 transition-colors group">
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{student.student__user__first_name} {student.student__user__last_name}</div>
+                                                        <div className="text-[10px] text-gray-400 font-medium tracking-tight">ADM: {student.student__admission_number}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-[10px] font-bold">
+                                                            {student.student__current_class__name}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm font-black text-red-600">₹{student.total_due}</div>
+                                                        <div className="text-[9px] text-red-400 font-bold uppercase">{student.pending_count} Items Pending</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    setLoading(true);
+                                                                    const details = await studentService.getStudent(student.student__id);
+                                                                    setSelectedStudent(details);
+                                                                    fetchStudentFees(student.student__id);
+                                                                    fetchStudentLedger(student.student__id);
+                                                                } finally {
+                                                                    setLoading(false);
+                                                                }
+                                                            }}
+                                                            className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all"
+                                                        >
+                                                            Collect Fees
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
 
                         {searchResults.length > 0 && !selectedStudent && (
                             <div className="border rounded-md overflow-hidden">

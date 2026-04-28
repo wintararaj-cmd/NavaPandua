@@ -24,6 +24,8 @@ import Performance from './pages/Performance';
 import Settings from './pages/Settings';
 import Assignments from './pages/Assignments';
 import Notifications from './pages/Notifications';
+import Inventory from './pages/Inventory';
+
 
 // Layouts
 import MainLayout from './layouts/MainLayout';
@@ -94,7 +96,9 @@ function App() {
             <Route path="assignments" element={<Assignments />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="inventory" element={<Inventory />} />
           </Route>
+
         </Routes>
       </BrowserRouter>
 

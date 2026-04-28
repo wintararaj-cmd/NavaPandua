@@ -21,7 +21,7 @@ export default function FeeTypeModal({ isOpen, onClose, onSuccess }: FeeTypeModa
         e.preventDefault();
         try {
             setLoading(true);
-            await feeService.createType(formData);
+            await feeService.createFeeType(formData);
             toast.success('Fee type created successfully');
             onSuccess();
             onClose();

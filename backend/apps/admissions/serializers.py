@@ -27,18 +27,27 @@ class AdmissionApplicationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Generate application number if not present
         if not validated_data.get('application_number'):
-            receipt_no = validated_data.get('receipt_no')
-            if receipt_no:
-                validated_data['application_number'] = receipt_no
+            school = validated_data.get('school')
+            if not school and 'request' in self.context:
+                school = self.context['request'].user.school
+            
+            if school:
+                from apps.schools.models import SchoolSettings
+                from apps.core.utils import generate_next_id
+                from django.utils import timezone
+                
+                school_settings = SchoolSettings.objects.filter(school=school).first()
+                prefix = school_settings.application_id_prefix if school_settings else 'REG'
+                # Add year to prefix if desired, e.g., REG-2026-
+                current_year = timezone.now().year
+                prefix = f"{prefix}-{current_year}-"
+                length = school_settings.id_number_length if school_settings else 6
+                
+                validated_data['application_number'] = generate_next_id(AdmissionApplication, 'application_number', prefix, length)
             else:
+                # Fallback to UUID if school is not available
                 import uuid
                 validated_data['application_number'] = f"APP-{uuid.uuid4().hex[:8].upper()}"
         
-        # Ensure application_number is unique
-        base_app_no = validated_data['application_number']
-        counter = 1
-        while AdmissionApplication.objects.filter(application_number=validated_data['application_number']).exists():
-            validated_data['application_number'] = f"{base_app_no}-{counter}"
-            counter += 1
-            
         return super().create(validated_data)
+

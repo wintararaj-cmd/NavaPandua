@@ -16,8 +16,11 @@ class TeacherSerializer(serializers.ModelSerializer):
             'id', 'user', 'school', 'school_name', 'assigned_schools',
             'employee_id', 'department', 'designation', 
             'qualification', 'joining_date',
+            'gender', 'date_of_birth', 'phone', 'email', 'current_address',
+            'basic_salary', 'bank_account_no', 'ifsc_code', 'bank_name', 'status',
             'created_at', 'updated_at'
         ]
+
         read_only_fields = ['created_at', 'updated_at', 'school']
 
     def create(self, validated_data):
@@ -27,7 +30,8 @@ class TeacherSerializer(serializers.ModelSerializer):
         # Set default password if not provided
         password = user_data.pop('password', 'teacher123')
             
-        user_data['role'] = 'TEACHER'
+        user_data['role'] = user_data.get('role', 'TEACHER')
+
         user_data['username'] = user_data['email']  # Use email as username
 
         # Remove non-model fields that might be in user_data from UserSerializer
@@ -38,8 +42,29 @@ class TeacherSerializer(serializers.ModelSerializer):
             # Create User
             user = User.objects.create_user(password=password, **user_create_data)
             
+            # Generate employee_id if not present
+            if not validated_data.get('employee_id'):
+                school = validated_data.get('school')
+                if not school and 'request' in self.context:
+                    school = self.context['request'].user.school
+                
+                if school:
+                    from apps.schools.models import SchoolSettings
+                    from apps.core.utils import generate_next_id
+                    
+                    school_settings = SchoolSettings.objects.filter(school=school).first()
+                    prefix = school_settings.teacher_id_prefix if school_settings else 'EMP'
+                    length = school_settings.id_number_length if school_settings else 6
+                    
+                    validated_data['employee_id'] = generate_next_id(Teacher, 'employee_id', prefix, length)
+                else:
+                    # Fallback to random if no school context
+                    import random
+                    validated_data['employee_id'] = f"EMP{random.randint(1000, 9999)}"
+
             # Create Teacher
             teacher = Teacher.objects.create(user=user, **validated_data)
+
             
             # Handle ManyToMany
             if assigned_schools:

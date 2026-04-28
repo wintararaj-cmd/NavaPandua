@@ -16,13 +16,32 @@ class StudentSerializer(serializers.ModelSerializer):
     class_details = ClassSerializer(source='current_class', read_only=True)
     section_details = SectionSerializer(source='section', read_only=True)
     siblings = StudentSiblingSerializer(many=True, read_only=True)
-    first_name = serializers.ReadOnlyField(source='user.first_name')
-    last_name = serializers.ReadOnlyField(source='user.last_name')
+    first_name = serializers.CharField(source='user.first_name', required=False)
+    last_name = serializers.CharField(source='user.last_name', required=False)
+    email = serializers.EmailField(source='user.email', required=False)
+    phone = serializers.CharField(source='user.phone', required=False)
+    date_of_birth = serializers.DateField(source='user.date_of_birth', required=False, allow_null=True)
+    gender = serializers.CharField(source='user.gender', required=False)
+
+
+
     
     class Meta:
         model = Student
         fields = '__all__'
         read_only_fields = ['id', 'created_at', 'updated_at', 'admission_number']
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop('user', {})
+        user = instance.user
+        
+        # Update User fields
+        for attr, value in user_data.items():
+            setattr(user, attr, value)
+        user.save()
+        
+        return super().update(instance, validated_data)
+
 
 
 class CreateStudentSerializer(serializers.ModelSerializer):

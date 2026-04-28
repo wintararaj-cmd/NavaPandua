@@ -78,6 +78,14 @@ class Student(BaseModel):
     mother_college = models.CharField(max_length=255, blank=True)
     mother_associated_with = models.TextField(blank=True)
     
+    # Address Info
+    address = models.TextField(blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    state = models.CharField(max_length=100, blank=True)
+    postal_code = models.CharField(max_length=20, blank=True)
+    country = models.CharField(max_length=100, default='India')
+
+    
     # Other Info
     is_single_parent = models.BooleanField(default=False)
     legal_guardian = models.CharField(max_length=100, blank=True)

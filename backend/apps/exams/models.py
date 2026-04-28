@@ -55,7 +55,7 @@ class ExamResult(BaseModel):
     is_absent = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.student.first_name} - {self.exam_schedule.subject.name}: {self.marks_obtained}"
+        return f"{self.student.user.first_name} - {self.exam_schedule.subject.name}: {self.marks_obtained}"
 
     class Meta:
         db_table = 'exam_results'

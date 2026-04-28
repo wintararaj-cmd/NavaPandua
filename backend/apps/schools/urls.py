@@ -3,15 +3,21 @@ URL patterns for schools.
 """
 
 from django.urls import path
+from django.http import JsonResponse
 from .views import (
     SchoolListCreateView, SchoolDetailView, SchoolSettingsView,
     AcademicYearListCreateView, HolidayListCreateView,
-    MasterDataListCreateView, MasterDataDetailView
+    MasterDataListCreateView, MasterDataDetailView,
+    SchoolPublicPageView, SchoolGalleryImageViewSet
 )
 
 app_name = 'schools'
 
 urlpatterns = [
+    path('<str:school_id>/public-page/', SchoolPublicPageView.as_view(), name='school_public_page'),
+    path('<str:school_id>/gallery/', SchoolGalleryImageViewSet.as_view({'get': 'list', 'post': 'create'}), name='school_gallery_list'),
+    path('<str:school_id>/gallery/<uuid:pk>/', SchoolGalleryImageViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='school_gallery_detail'),
+    path('test-ping/', lambda r: JsonResponse({"message": "pong"}), name='test_ping'),
     path('', SchoolListCreateView.as_view(), name='school_list_create'),
     path('<uuid:pk>/', SchoolDetailView.as_view(), name='school_detail'),
     path('<uuid:pk>/settings/', SchoolSettingsView.as_view(), name='school_settings'),

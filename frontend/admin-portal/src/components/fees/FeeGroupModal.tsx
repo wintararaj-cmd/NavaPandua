@@ -21,7 +21,7 @@ export default function FeeGroupModal({ isOpen, onClose, onSuccess }: FeeGroupMo
         e.preventDefault();
         try {
             setLoading(true);
-            await feeService.createGroup(formData);
+            await feeService.createFeeGroup(formData);
             toast.success('Fee group created successfully');
             onSuccess();
             onClose();

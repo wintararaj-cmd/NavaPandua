@@ -88,10 +88,9 @@ export const examService = {
         const response = await api.post('/exams/results/', data);
         return response.data;
     },
-    bulkSaveResults: async (results: any[]) => {
-        // Implement bulk save if backend supports it, otherwise loop
-        const promises = results.map(res => api.post('/exams/results/', res));
-        return Promise.all(promises);
+    bulkSaveResults: async (data: { exam_schedule: string; results: any[] }) => {
+        const response = await api.post('/exams/results/bulk-save/', data);
+        return response.data;
     },
 
     downloadReportCard: async (examId: string, studentId: string) => {

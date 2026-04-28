@@ -2,8 +2,9 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, Building2, School, Users, UserCircle,
     GraduationCap, BookOpen, Calendar, DollarSign, BarChart3,
-    Settings, LogOut, Menu, X, UserPlus, FileText, Video, ClipboardList, Bell
+    Settings, LogOut, Menu, X, UserPlus, FileText, Video, ClipboardList, Bell, Package
 } from 'lucide-react';
+
 import { useState } from 'react';
 import { authStore } from '../stores/authStore';
 import { useInstitutionTerms } from '../hooks/useInstitutionTerms';
@@ -40,7 +41,9 @@ export default function MainLayout() {
         { icon: FileText, label: 'Exams', path: '/exams' },
         { icon: BookOpen, label: 'Library', path: '/library' },
         { icon: Video, label: 'Live Classes', path: '/live-classes' },
+        { icon: Package, label: 'Inventory', path: '/inventory' },
         { icon: BarChart3, label: 'Reports', path: '/reports' },
+
         { icon: Bell, label: 'Notifications', path: '/notifications' },
         { icon: Settings, label: 'Settings', path: '/settings' },
     ];

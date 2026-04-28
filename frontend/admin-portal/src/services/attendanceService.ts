@@ -39,6 +39,12 @@ export const attendanceService = {
         return response.data;
     },
 
+    bulkSaveTeacherAttendance: async (data: any) => {
+        const response = await api.post('/attendance/teachers/bulk-save/', data);
+        return response.data;
+    },
+
+
     updateAttendance: async (id: string, type: 'students' | 'teachers', data: Partial<Attendance>) => {
         const response = await api.patch(`/attendance/${type}/${id}/`, data);
         return response.data;

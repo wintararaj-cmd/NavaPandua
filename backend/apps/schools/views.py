@@ -2,15 +2,16 @@
 Views for school management.
 """
 
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
 
-from .models import School, SchoolSettings, AcademicYear, Holiday, MasterData
+from .models import School, SchoolSettings, AcademicYear, Holiday, MasterData, SchoolPublicPage, SchoolGalleryImage
 from .serializers import (
     SchoolSerializer, CreateSchoolSerializer, SchoolSettingsSerializer,
-    AcademicYearSerializer, HolidaySerializer, MasterDataSerializer
+    AcademicYearSerializer, HolidaySerializer, MasterDataSerializer,
+    SchoolPublicPageSerializer, SchoolGalleryImageSerializer
 )
 from apps.core.exceptions import NotFoundException, ForbiddenException
 from apps.accounts.permissions import IsSuperAdmin
@@ -97,3 +98,61 @@ class MasterDataDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         school_id = self.kwargs.get('school_id')
         return MasterData.objects.filter(school_id=school_id, is_deleted=False)
+
+class SchoolPublicPageView(generics.RetrieveUpdateAPIView):
+    """Get or update school public page configuration."""
+    serializer_class = SchoolPublicPageSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get_object(self):
+        # Can fetch by school ID (UUID) or school code
+        school_id = self.kwargs.get('school_id')
+        try:
+            # Try UUID first
+            from django.core.exceptions import ValidationError
+            school = School.objects.get(id=school_id, is_deleted=False)
+        except (School.DoesNotExist, ValueError, ValidationError):
+            # Fallback to code
+            school = School.objects.get(code=school_id, is_deleted=False)
+            
+        page, _ = SchoolPublicPage.objects.get_or_create(
+            school=school,
+            defaults={
+                'vision': f"To provide quality education at {school.name}.",
+                'mission': f"To empower students of {school.name} for a better future.",
+                'about_text': school.about or f"Welcome to {school.name}."
+            }
+        )
+        return page
+
+class SchoolGalleryImageViewSet(viewsets.ModelViewSet):
+    """Manage gallery images for a school public page."""
+    serializer_class = SchoolGalleryImageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        school_id = self.kwargs.get('school_id')
+        try:
+            from django.core.exceptions import ValidationError
+            school = School.objects.get(id=school_id, is_deleted=False)
+        except (School.DoesNotExist, ValueError, ValidationError):
+            school = School.objects.get(code=school_id, is_deleted=False)
+        return SchoolGalleryImage.objects.filter(school_page__school=school)
+    
+    def perform_create(self, serializer):
+        school_id = self.kwargs.get('school_id')
+        try:
+            from django.core.exceptions import ValidationError
+            school = School.objects.get(id=school_id, is_deleted=False)
+        except (School.DoesNotExist, ValueError, ValidationError):
+            school = School.objects.get(code=school_id, is_deleted=False)
+            
+        page, _ = SchoolPublicPage.objects.get_or_create(
+            school=school,
+            defaults={
+                'vision': f"To provide quality education at {school.name}.",
+                'mission': f"To empower students of {school.name} for a better future.",
+                'about_text': school.about or f"Welcome to {school.name}."
+            }
+        )
+        serializer.save(school_page=page)

@@ -10,11 +10,13 @@ import { classService, type Class, type Section } from '../services/classService
 import { useInstitutionTerms } from '../hooks/useInstitutionTerms';
 import ExamModal from '../components/exams/ExamModal';
 import ExamScheduleModal from '../components/exams/ExamScheduleModal';
+import MarkEntryModal from '../components/exams/MarkEntryModal';
+import PromotionModal from '../components/exams/PromotionModal';
 import toast from 'react-hot-toast';
 
 export default function Exams() {
     const terms = useInstitutionTerms();
-    const [activeTab, setActiveTab] = useState<'exams' | 'grades' | 'schedules' | 'results' | 'report-cards'>('exams');
+    const [activeTab, setActiveTab] = useState<'exams' | 'grades' | 'schedules' | 'results' | 'report-cards' | 'promotion'>('exams');
     const [loading, setLoading] = useState(false);
 
     const [exams, setExams] = useState<Exam[]>([]);
@@ -29,6 +31,8 @@ export default function Exams() {
 
     const [showExamModal, setShowExamModal] = useState(false);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
+    const [showMarkEntryModal, setShowMarkEntryModal] = useState(false);
+    const [showPromotionModal, setShowPromotionModal] = useState(false);
 
     useEffect(() => {
         fetchInitialData();
@@ -110,6 +114,7 @@ export default function Exams() {
                         { id: 'schedules', label: 'Calendar', icon: Clock },
                         { id: 'results', label: 'Marks', icon: FileSpreadsheet },
                         { id: 'report-cards', label: 'Reports', icon: FileText },
+                        { id: 'promotion', label: 'Promotion', icon: GraduationCap },
                         { id: 'grades', label: 'Scales', icon: Award },
                     ].map(tab => (
                         <button
@@ -209,7 +214,7 @@ export default function Exams() {
                     </div>
                 )}
 
-                {(activeTab === 'results' || activeTab === 'report-cards') && (
+                {(activeTab === 'results' || activeTab === 'report-cards' || activeTab === 'promotion') && (
                     <>
                         <div className="space-y-10 animate-in slide-in-from-bottom-8">
                             <div className="bg-indigo-600 rounded-[32px] p-8 shadow-2xl shadow-indigo-100 flex flex-col md:flex-row items-end gap-6">
@@ -241,29 +246,62 @@ export default function Exams() {
                                     <button onClick={handleLoadStudents} disabled={loading} className="bg-white text-indigo-600 px-8 py-5 rounded-2xl font-black text-sm shadow-xl transition-all hover:bg-indigo-50 active:scale-95 disabled:opacity-50 whitespace-nowrap">
                                         SYNC RECORDS
                                     </button>
-                                    <button 
-                                        onClick={async () => {
-                                            if (!selectedExam || !selectedClass) { toast.error('Select both exam and class'); return; }
-                                            try {
-                                                toast.loading('Generating Consolidated Sheet...', { id: 'pdf' });
-                                                const blob = await examService.downloadConsolidatedMarksheet(selectedExam, selectedClass);
-                                                const url = window.URL.createObjectURL(new Blob([blob]));
-                                                const link = document.createElement('a');
-                                                link.href = url;
-                                                link.setAttribute('download', `Consolidated_Sheet.pdf`);
-                                                document.body.appendChild(link);
-                                                link.click();
-                                                link.remove();
-                                                toast.success('Consolidated Sheet Downloaded', { id: 'pdf' });
-                                            } catch { toast.error('Failed to download sheet', { id: 'pdf' }); }
-                                        }}
-                                        disabled={loading || !selectedExam || !selectedClass} 
-                                        className="bg-indigo-900 text-white px-8 py-5 rounded-2xl font-black text-sm shadow-xl transition-all hover:bg-indigo-950 active:scale-95 disabled:opacity-50 whitespace-nowrap flex items-center gap-2"
-                                    >
-                                        <FileSpreadsheet className="w-5 h-5" /> CONSOLIDATED SHEET
-                                    </button>
+                                    {activeTab === 'promotion' ? (
+                                        <button 
+                                            onClick={() => setShowPromotionModal(true)}
+                                            disabled={loading || students.length === 0} 
+                                            className="bg-emerald-600 text-white px-8 py-5 rounded-2xl font-black text-sm shadow-xl transition-all hover:bg-emerald-700 active:scale-95 disabled:opacity-50 whitespace-nowrap flex items-center gap-2"
+                                        >
+                                            <GraduationCap className="w-5 h-5" /> BULK PROMOTE
+                                        </button>
+                                    ) : (
+                                        <button 
+                                            onClick={async () => {
+                                                if (!selectedExam || !selectedClass) { toast.error('Select both exam and class'); return; }
+                                                try {
+                                                    toast.loading('Generating Consolidated Sheet...', { id: 'pdf' });
+                                                    const blob = await examService.downloadConsolidatedMarksheet(selectedExam, selectedClass);
+                                                    const url = window.URL.createObjectURL(new Blob([blob]));
+                                                    const link = document.createElement('a');
+                                                    link.href = url;
+                                                    link.setAttribute('download', `Consolidated_Sheet.pdf`);
+                                                    document.body.appendChild(link);
+                                                    link.click();
+                                                    link.remove();
+                                                    toast.success('Consolidated Sheet Downloaded', { id: 'pdf' });
+                                                } catch { toast.error('Failed to download sheet', { id: 'pdf' }); }
+                                            }}
+                                            disabled={loading || !selectedExam || !selectedClass} 
+                                            className="bg-indigo-900 text-white px-8 py-5 rounded-2xl font-black text-sm shadow-xl transition-all hover:bg-indigo-950 active:scale-95 disabled:opacity-50 whitespace-nowrap flex items-center gap-2"
+                                        >
+                                            <FileSpreadsheet className="w-5 h-5" /> CONSOLIDATED SHEET
+                                        </button>
+                                    )}
                                 </div>
                             </div>
+
+                            {activeTab === 'results' && students.length > 0 && (
+                                <div className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100 flex justify-between items-center mb-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+                                            <FileSpreadsheet className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-black text-gray-900 tracking-tight">Bulk Entry Protocol</h4>
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">Streamline result submission for the entire class</p>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => {
+                                            if (!selectedExam || !selectedClass) { toast.error('Please select filters first'); return; }
+                                            setShowMarkEntryModal(true);
+                                        }}
+                                        className="bg-white text-indigo-600 border-2 border-indigo-600 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-xl shadow-indigo-100/10"
+                                    >
+                                        Open Entry Dashboard
+                                    </button>
+                                </div>
+                            )}
 
                             {students.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -283,12 +321,22 @@ export default function Exams() {
                                             <div className="mt-auto space-y-3">
                                                 <div className="flex items-center justify-between text-[10px] font-black text-gray-300 uppercase tracking-widest mb-2">
                                                     <span>Session: 2024</span>
-                                                    <span>Status: Active</span>
+                                                    <span>Status: {s.status}</span>
                                                 </div>
                                                 {activeTab === 'results' ? (
-                                                    <button className="w-full flex items-center justify-center gap-3 py-4 bg-indigo-50 text-indigo-600 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-xl shadow-indigo-100/10">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setSelectedClass(s.current_class);
+                                                            setShowMarkEntryModal(true);
+                                                        }}
+                                                        className="w-full flex items-center justify-center gap-3 py-4 bg-indigo-50 text-indigo-600 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-xl shadow-indigo-100/10"
+                                                    >
                                                         Enter Marks <ArrowRightCircle className="w-5 h-5" />
                                                     </button>
+                                                ) : activeTab === 'promotion' ? (
+                                                    <div className="px-4 py-3 bg-gray-50 rounded-2xl text-[10px] font-black text-gray-400 uppercase text-center tracking-widest">
+                                                        Included in Bulk Promotion
+                                                    </div>
                                                 ) : (
                                                     <button 
                                                         onClick={() => handleDownloadReportCard(selectedExam, s.id, `${s.user.first_name} ${s.user.last_name}`)}
@@ -339,6 +387,27 @@ export default function Exams() {
 
             <ExamModal isOpen={showExamModal} onClose={() => setShowExamModal(false)} onSuccess={fetchTabContent} />
             <ExamScheduleModal isOpen={showScheduleModal} onClose={() => setShowScheduleModal(false)} onSuccess={fetchTabContent} />
+            
+            <MarkEntryModal 
+                isOpen={showMarkEntryModal} 
+                onClose={() => setShowMarkEntryModal(false)}
+                classId={selectedClass}
+                examId={selectedExam}
+                examName={exams.find(e => e.id === selectedExam)?.name || ''}
+                className={classes.find(c => c.id === selectedClass)?.name || ''}
+            />
+
+            <PromotionModal
+                isOpen={showPromotionModal}
+                onClose={() => setShowPromotionModal(false)}
+                onSuccess={() => {
+                    handleLoadStudents();
+                    toast.success('Students promoted and list refreshed');
+                }}
+                students={students}
+                currentClassId={selectedClass}
+                currentClassName={classes.find(c => c.id === selectedClass)?.name || ''}
+            />
         </div>
     );
 }

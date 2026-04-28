@@ -1,346 +1,213 @@
-# Coolify Deployment Guide — Navadaya School Management System
-> **Fresh Install Reference** | VPS: `5.189.155.6` | Repo: `wintararaj-cmd/NavaPandua`
+# Coolify Deployment Guide — Nabodaya School Management System
+
+> **Reference Info** | VPS IP: `5.189.155.6` | GitHub Repo: `wintararaj-cmd/NavaPandua`
 
 ---
 
-## Architecture Overview
+## 🏗 Architecture Overview
 
-```
-navadaya.in          → Landing Page  (LandingPage — Nixpacks static)
-admin.navadaya.in    → Admin Portal  (admin — Nixpacks Node preview)
-api.navadaya.in      → Django API    (Main — Docker Compose)
-                           ├── backend     (Gunicorn :8000)
-                           ├── postgres    (PostgreSQL :5432)
-                           ├── redis       (Redis :6379)
-                           ├── celery      (worker)
-                           └── celery-beat (scheduler)
+The system consists of three main frontend/backend services, routed securely via Coolify's built-in Traefik proxy.
+
+```mermaid
+graph TD
+    User((User)) --> Proxy[Coolify Traefik Proxy]
+    
+    Proxy -->|navadaya.in / nabodaya.in| LP[Landing Page<br>Nixpacks Static]
+    Proxy -->|admin.navadaya.in| Admin[Admin Portal<br>Nixpacks Node]
+    Proxy -->|api.navadaya.in| API[Django API<br>Docker Compose]
+    
+    subgraph Backend Services
+    API --> PG[(PostgreSQL)]
+    API --> Redis[(Redis)]
+    API --> Celery[Celery Worker]
+    API --> CeleryBeat[Celery Beat]
+    end
 ```
 
 ---
 
-## Phase 1 — Fresh VPS Setup
+## 🚀 Phase 1: VPS Provisioning & Security
 
-### 1.1 Connect & Update
+### 1.1 Connect & Update System
 ```bash
 ssh root@5.189.155.6
 apt update && apt upgrade -y
-apt install -y ufw
 ```
 
-### 1.2 Firewall
+### 1.2 Configure UFW (Firewall)
+Secure your server by only exposing necessary ports:
 ```bash
+apt install -y ufw
 ufw allow OpenSSH
 ufw allow 80/tcp
 ufw allow 443/tcp
-ufw allow 3000/tcp   # Coolify dashboard (can lock down after setup)
+ufw allow 3000/tcp   # Coolify Dashboard (Close this after initial setup if desired)
 ufw enable
 ```
 
-### 1.3 Swap File (Recommended for stability)
+### 1.3 Add Swap File (Stability Optimization)
+Prevent out-of-memory errors during build processes:
 ```bash
 fallocate -l 4G /swapfile
 chmod 600 /swapfile
 mkswap /swapfile
 swapon /swapfile
 echo '/swapfile none swap sw 0 0' >> /etc/fstab
-free -h   # verify
+free -h   # Verify swap is active
 ```
 
 ---
 
-## Phase 2 — Install Coolify
+## 🛠 Phase 2: Coolify Installation
 
+Run the official installation script. This will take a few minutes.
 ```bash
 curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
 ```
 
-- Wait ~2 minutes for installation to complete.
-- Access dashboard at: **`http://5.189.155.6:3000`**
-- Register your admin account on first visit.
+1. Navigate to your dashboard: **`http://5.189.155.6:3000`**
+2. Register the initial admin account.
 
 ---
 
-## Phase 3 — Connect GitHub
+## 🔗 Phase 3: Connect GitHub Repository
 
-1. In Coolify sidebar → **Sources** → **Add New Source** → **GitHub App**
-2. Follow the OAuth flow to install the Coolify GitHub App on `wintararaj-cmd`
-3. Grant access to the **`NavaPandua`** repository
-4. Save. You should see `wintararaj-cmd` listed under Sources.
+1. In Coolify's left sidebar, go to **Sources** → **Add New Source** → **GitHub App**.
+2. Complete the OAuth flow to install the Coolify GitHub App for your user/org (`wintararaj-cmd`).
+3. Grant access specifically to the **`NavaPandua`** repository.
+4. Save your configuration.
 
 ---
 
-## Phase 4 — Create Project
+## 📂 Phase 4: Project Initialization
 
 1. Sidebar → **Projects** → **+ Add**
-2. Name: `Navadaya`
-3. Click into it → **+ Add Environment** → Name: `production`
-4. Click into `production`
+2. Name the project: `Nabodaya`
+3. Click into the project → **+ Add Environment** → Name it: `production`
+4. Enter the `production` environment to begin adding resources.
 
 ---
 
-## Phase 5 — Service 1: Backend (Docker Compose)
+## ⚙️ Phase 5: Deploy Services
 
-This deploys Django API, PostgreSQL, Redis, and Celery via `docker-compose.yml`.
+### Service 1: Backend (Django API, Postgres, Redis, Celery)
+*Deploys the entire backend stack using `docker-compose.yml`.*
 
-### 5.1 Add Resource
-1. Click **+ New Resource**
-2. Select **Private Repository (GitHub App)**
-3. Repository: `wintararaj-cmd/NavaPandua`
-4. Branch: `main`
-5. Build Pack: **Docker Compose**
-6. Docker Compose Location: `/docker-compose.yml`
-7. Name: `Main`
-8. Click **Save**
-
-### 5.2 Configure Domains
-In the **General** tab → **Domains** section:
-
-| Field | Value |
-|---|---|
-| Domains for backend | `https://api.navadaya.in` |
-| Domains for celery | *(leave empty)* |
-| Domains for celery-beat | *(leave empty)* |
-
-Click **Save**.
-
-### 5.3 Environment Variables
-Go to the **Environment Variables** tab. Add these exactly:
-
-```env
-DEBUG=False
-SECRET_KEY=euw1YBOD-4xDP2ny2zvDqYsADg3VYbZMFMdnZg3wLLxNW1GNgFc_HK2iybKmLI6p3fo
-ALLOWED_HOSTS=navadaya.in,api.navadaya.in,admin.navadaya.in,localhost,127.0.0.1
-CORS_ALLOWED_ORIGINS=https://navadaya.in,https://admin.navadaya.in
-CSRF_TRUSTED_ORIGINS=https://navadaya.in,https://admin.navadaya.in
-
-# DATABASE CONFIGURATION
-# If using Coolify's internal Postgres:
-DATABASE_URL=postgresql://school_user:school123@postgres:5432/school_mgmt_db
-# OR If using an external/machine-formatted Postgres DB:
-# DATABASE_URL=postgresql://user:password@host:port/dbname?sslmode=require
-
-POSTGRES_DB=school_mgmt_db
-POSTGRES_USER=school_user
-POSTGRES_PASSWORD=school123
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
-
-REDIS_URL=redis://redis:6379/0
-CELERY_BROKER_URL=redis://redis:6379/1
-JWT_ACCESS_TOKEN_LIFETIME=60
-JWT_REFRESH_TOKEN_LIFETIME=1440
-MAX_UPLOAD_SIZE=5242880
-DEFAULT_PAGE_SIZE=20
-EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
-```
-
-> **IMPORTANT:** If you are using a **machine-formatted external database**, simply paste the full connection string into the `DATABASE_URL` field and ensure the `POSTGRES_...` variables match or are commented out if the application logic relies solely on `DATABASE_URL`.
-
-Click **Save**.
-
-### 5.4 Deploy
-Click **Deploy**. Monitor the **Deployments** tab logs.
-
-**Expected outcome:** Status → `Running (healthy)` (green dot) within ~3–5 minutes.
+1. **Add Resource**: Click **+ New Resource** → **Private Repository (GitHub App)**.
+2. **Select Repo**: `wintararaj-cmd/NavaPandua`, Branch: `main`.
+3. **Build Pack**: **Docker Compose**.
+4. **Location**: `/docker-compose.yml`.
+5. **Name**: `Main` → Click **Save**.
+6. **Domains**: In the *General* tab, set Domains for backend to `https://api.navadaya.in`. Leave Celery/Celery-beat domains empty.
+7. **Environment Variables**: Add the following:
+    ```env
+    DEBUG=False
+    SECRET_KEY=euw1YBOD-4xDP2ny2zvDqYsADg3VYbZMFMdnZg3wLLxNW1GNgFc_HK2iybKmLI6p3fo
+    ALLOWED_HOSTS=navadaya.in,nabodaya.in,api.navadaya.in,admin.navadaya.in,localhost,127.0.0.1
+    CORS_ALLOWED_ORIGINS=https://navadaya.in,https://nabodaya.in,https://admin.navadaya.in
+    CSRF_TRUSTED_ORIGINS=https://navadaya.in,https://nabodaya.in,https://admin.navadaya.in
+    
+    # Internal Database Connection
+    DATABASE_URL=postgresql://school_user:school123@postgres:5432/school_mgmt_db
+    POSTGRES_DB=school_mgmt_db
+    POSTGRES_USER=school_user
+    POSTGRES_PASSWORD=school123
+    POSTGRES_HOST=postgres
+    POSTGRES_PORT=5432
+    
+    REDIS_URL=redis://redis:6379/0
+    CELERY_BROKER_URL=redis://redis:6379/1
+    JWT_ACCESS_TOKEN_LIFETIME=60
+    JWT_REFRESH_TOKEN_LIFETIME=1440
+    MAX_UPLOAD_SIZE=5242880
+    DEFAULT_PAGE_SIZE=20
+    EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+    ```
+8. **Deploy**: Click **Deploy** and wait for the status to turn green (`Running (healthy)`).
 
 ---
 
-## Phase 6 — Service 2: Admin Portal
+### Service 2: Admin Portal (React/Vite)
+*Deploys the administration dashboard.*
 
-### 6.1 Add Resource
-1. Click **+ New Resource**
-2. Select **Private Repository (GitHub App)**
-3. Repository: `wintararaj-cmd/NavaPandua`
-4. Branch: `main`
-5. Build Pack: **Nixpacks**
-6. Name: `admin`
-7. Click **Save**
-
-### 6.2 General Configuration
-
-| Field | Value |
-|---|---|
-| Name | `admin` |
-| Build Pack | `Nixpacks` |
-| Is it a static site? | ❌ No (unchecked) |
-| Base Directory | `/frontend/admin-portal` |
-| Install Command | `npm install` |
-| Build Command | `npm run build` |
-| Start Command | `npm run preview` |
-| Publish Directory | `/` |
-
-### 6.3 Domain
-```
-https://admin.navadaya.in
-```
-
-### 6.4 Environment Variables
-```env
-VITE_API_URL=https://api.navadaya.in/api/v1
-NODE_ENV=production
-```
-
-### 6.5 Deploy
-Click **Deploy**. Admin portal available at `https://admin.navadaya.in`.
+1. **Add Resource**: **Private Repository** → `wintararaj-cmd/NavaPandua` (branch `main`).
+2. **Build Pack**: **Nixpacks** → Name: `AdminPortal` → Click **Save**.
+3. **Configuration** (General Tab):
+   - **Is it a static site?**: ❌ No
+   - **Base Directory**: `/frontend/admin-portal`
+   - **Install Command**: `npm install`
+   - **Build Command**: `npm run build`
+   - **Start Command**: `npm run preview`
+   - **Publish Directory**: `/`
+4. **Domain**: `https://admin.navadaya.in`
+5. **Environment Variables**:
+    ```env
+    VITE_API_URL=https://api.navadaya.in/api/v1
+    NODE_ENV=production
+    ```
+6. **Deploy**: Click **Deploy**.
 
 ---
 
-## Phase 7 — Service 3: Landing Page
+### Service 3: Landing Page (Static)
+*Deploys the public-facing website.*
 
-### 7.1 Add Resource
-1. Click **+ New Resource**
-2. Select **Private Repository (GitHub App)**
-3. Repository: `wintararaj-cmd/NavaPandua`
-4. Branch: `main`
-5. Build Pack: **Nixpacks**
-6. Name: `LandingPage`
-7. Click **Save**
-
-### 7.2 General Configuration
-
-| Field | Value |
-|---|---|
-| Name | `LandingPage` |
-| Build Pack | `Nixpacks` |
-| Is it a static site? | ✅ Yes (checked) |
-| Is it a SPA? | ❌ No |
-| Static Image | `nginx:alpine` |
-| Base Directory | `/frontend/landing-page` |
-| Publish Directory | `dist` |
-
-### 7.3 Domains
-```
-https://navadaya.in
-https://nabodaya.in
-```
-
-### 7.4 Deploy
-Click **Deploy**. Landing page live at `https://navadaya.in`.
+1. **Add Resource**: **Private Repository** → `wintararaj-cmd/NavaPandua` (branch `main`).
+2. **Build Pack**: **Nixpacks** → Name: `LandingPage` → Click **Save**.
+3. **Configuration** (General Tab):
+   - **Is it a static site?**: ✅ Yes
+   - **Is it a SPA?**: ❌ No
+   - **Static Image**: `nginx:alpine`
+   - **Base Directory**: `/frontend/landing-page`
+   - **Publish Directory**: `dist`
+4. **Domains**: `https://navadaya.in, https://nabodaya.in`
+5. **Deploy**: Click **Deploy**.
 
 ---
 
-## Phase 8 — Verify SSL Certificates
+## 🔒 Phase 6: SSL & Proxy Verification
 
-After all three services are deployed and **healthy**:
+Ensure Let's Encrypt has properly provisioned certificates for all domains.
 
-1. Go to **Servers** (left sidebar) → click your server → **Proxy** tab
-2. Click **Restart Proxy**
-3. Wait 1–2 minutes
-
-Test from PowerShell on your local machine:
-```powershell
-curl.exe -kv https://api.navadaya.in 2>&1 | Select-String "issuer|subject|HTTP"
-curl.exe -kv https://admin.navadaya.in 2>&1 | Select-String "issuer|subject|HTTP"
-curl.exe -kv https://navadaya.in 2>&1 | Select-String "issuer|subject|HTTP"
-```
-
-Each should show `issuer: Let's Encrypt` — NOT `TRAEFIK DEFAULT CERT`.
+1. Sidebar → **Servers** → Your Server → **Proxy** tab.
+2. Click **Restart Proxy** and wait 2 minutes.
+3. **Test locally in PowerShell/Terminal**:
+   ```powershell
+   curl.exe -kv https://api.navadaya.in 2>&1 | Select-String "issuer|subject|HTTP"
+   ```
+   *Note: Output should show `issuer: Let's Encrypt`, avoiding the `TRAEFIK DEFAULT CERT`.*
 
 ---
 
-## Phase 9 — Post-Deploy Tasks
+## 🛠 Phase 7: Post-Deployment Setup
 
-In Coolify → **Main** service → **Terminal** tab → select `backend` container:
+Initialize the database schema and admin user inside the backend container.
 
-```bash
-# Run migrations
-python manage.py migrate
-
-# Create admin user
-python manage.py createsuperuser
-
-# Collect static files (if needed)
-python manage.py collectstatic --noinput
-
-# Optional: Load sample data
-python populate_data.py
-```
+1. Go to your **Main** service → **Terminal** tab → Select the `backend` container.
+2. Run the initialization commands:
+    ```bash
+    python manage.py migrate
+    python manage.py createsuperuser
+    python manage.py collectstatic --noinput
+    ```
 
 ---
 
-## Phase 10 — Final Verification Checklist
+## 🚨 Troubleshooting Guide
 
-| URL | Expected Result |
-|---|---|
-| `https://navadaya.in` | ✅ Landing page loads, no SSL warning |
-| `https://admin.navadaya.in` | ✅ Login page loads |
-| `https://api.navadaya.in/api/v1/` | ✅ JSON response or 401 |
-| `https://api.navadaya.in/admin/` | ✅ Django admin login page |
-
----
-
-## Troubleshooting
-
-### ❌ Backend shows `Running (unhealthy)`
-**Cause:** `python:3.11-slim` image does NOT have `curl`. Health check uses `curl` = always fails.  
-**Fix:** Confirm `docker-compose.yml` healthcheck uses Python:
-```yaml
-healthcheck:
-  test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/')"]
-  interval: 30s
-  timeout: 10s
-  retries: 5
-  start_period: 40s
-```
-
-### ❌ `ERR_CERT_AUTHORITY_INVALID` (SSL error)
-**Cause:** Traefik fell back to self-signed cert because the backend was unhealthy during deploy.  
-**Fix:**
-1. Fix unhealthy backend (above)
-2. **Servers** → your server → **Proxy** → **Restart Proxy**
-3. Wait 2 min → hard-refresh browser (`Ctrl+Shift+R`)
-
-### ❌ `503 Service Unavailable` on `api.navadaya.in`
-**Cause:** Backend unhealthy — Traefik won't route to it.  
-**Fix:** Check **Logs** for `backend` container → fix error → Redeploy.
-
-### ❌ PostgreSQL authentication error
-**Cause:** Volume has stale data from old credentials.  
-**Fix:** Main → **Danger Zone** → delete `postgres_data_v3` volume → Redeploy.  
-> ⚠️ This wipes database data. Run migrations again after.
-
-### ❌ CORS errors in browser console
-**Fix:** Ensure no trailing slashes in env var:
-```
-CORS_ALLOWED_ORIGINS=https://navadaya.in,https://admin.navadaya.in
-```
-
-### ❌ Admin portal blank page / network errors
-**Fix:** Set `VITE_API_URL=https://api.navadaya.in/api/v1` in admin service env vars → Redeploy.
-
-## Phase 11 — Ongoing Maintenance & UI Updates
-
-### 11.1 Updating the UI (Landing Page / Admin Portal)
-If you make changes to the UI (e.g., updating the Hero section frame or Success Story styles):
-1.  **Commit & Push**: Push your changes to the `main` branch on GitHub.
-2.  **Auto-Deploy**: If you enabled "Auto-Deploy" in Coolify, it will start automatically.
-3.  **Manual Deploy**: If not, go to the `LandingPage` or `admin` resource and click **Redeploy**.
-4.  **Clear Cache**: After a UI update, perform a hard-refresh in your browser (`Ctrl + Shift + R`).
-
-### 11.2 Database Migrations
-When adding new features that change the database schema:
-1.  Push your code with the new migration files (in `apps/*/migrations/`).
-2.  Deploy the `Main` service.
-3.  Go to **Main** → **Terminal** → select `backend`.
-4.  Run `python manage.py migrate`.
+| Issue | Root Cause | Solution |
+|-------|-----------|----------|
+| **Backend `Running (unhealthy)`** | Image lacks `curl` for healthcheck. | Ensure `docker-compose.yml` healthcheck uses: `test: ["CMD", "python", "-c", "import urllib.request..."]` |
+| **`ERR_CERT_AUTHORITY_INVALID`** | Traefik fallback on unhealthy backend. | Fix backend health, then **Restart Proxy** in Server settings. Hard refresh browser. |
+| **`503 Service Unavailable`** | Proxy cannot route to backend. | Check backend container logs. Usually a DB connection or syntax error. Redeploy once fixed. |
+| **DB Auth Error (`password auth failed`)** | Stale credentials in Docker volume. | Go to Main → **Danger Zone** → Delete `postgres_data_v3` volume. Redeploy & run migrations. |
+| **CORS Errors** | Trailing slash in env variables. | Remove trailing slashes in `CORS_ALLOWED_ORIGINS` & `CSRF_TRUSTED_ORIGINS`. |
+| **Admin Portal Blank Page** | Incorrect API URL configuration. | Set `VITE_API_URL=https://api.navadaya.in/api/v1` and redeploy. |
 
 ---
 
-## Quick Reference
+## 🔄 Maintenance & CI/CD Workflow
 
-### Domains
-| Service | Coolify Name | Domain |
-|---|---|---|
-| Django API | `Main` | `https://api.navadaya.in` |
-| Admin Portal | `admin` | `https://admin.navadaya.in` |
-| Landing Page | `LandingPage` | `https://navadaya.in`, `https://nabodaya.in` |
-
-### Coolify Navigation
-| Task | Path |
-|---|---|
-| Restart SSL / Traefik | Servers → localhost → Proxy → Restart Proxy |
-| Run commands in container | Projects → Navadaya → production → [Service] → Terminal |
-| View logs | Projects → Navadaya → production → [Service] → Logs |
-| Edit env vars | Projects → Navadaya → production → [Service] → Environment Variables |
-| Delete a volume | Projects → Navadaya → production → [Service] → Danger Zone |
-| Force redeploy | Projects → Navadaya → production → [Service] → Redeploy |
+*   **UI Updates**: Push to GitHub `main` branch. Coolify auto-deploys if webhooks/auto-deploy are enabled. Otherwise, manually click **Redeploy**.
+*   **Database Changes**: After code with new migrations is deployed, always run `python manage.py migrate` in the `backend` terminal.
+*   **Volume Management**: Database backups/resets can be managed under a service's **Danger Zone** tab or using standard `pg_dump` tools within the container.

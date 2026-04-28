@@ -25,6 +25,8 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
     const terms = useInstitutionTerms();
     const [formData, setFormData] = useState<StudentFormData>({
         admission_number: '',
+        roll_number: '',
+
         organization: '',
         school: '',
         current_class: '',
@@ -167,6 +169,8 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
         setFormData({
             ...student,
             admission_number: student.admission_number || '',
+            roll_number: student.roll_number || '',
+
             organization: student.organization || '',
             school: student.school || '',
             current_class: student.current_class || '',
@@ -187,6 +191,8 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
     const resetForm = () => {
         setFormData({
             admission_number: '',
+            roll_number: '',
+
             organization: '',
             school: '',
             current_class: '',
@@ -378,6 +384,11 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
                                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Admission / Receipt No *</label>
                                         <input type="text" name="admission_number" value={formData.admission_number} onChange={handleChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold" />
                                     </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Roll Number</label>
+                                        <input type="text" name="roll_number" value={formData.roll_number} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold" />
+                                    </div>
+
                                     <div>
                                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Admission Date *</label>
                                         <input type="date" name="admission_date" value={formData.admission_date} onChange={handleChange} required className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none" />

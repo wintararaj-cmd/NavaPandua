@@ -39,30 +39,52 @@ export interface StaffFormData {
     designation: string;
     qualification: string;
     joining_date: string;
+    current_address?: string;
+    basic_salary?: number;
+    bank_account_no?: string;
+    ifsc_code?: string;
+    bank_name?: string;
 }
 
 export const teacherService = {
     getAll: async (params?: any) => {
-        const response = await api.get('/auth/staff/', { params });
+        const response = await api.get('/teachers/', { params });
         return response.data;
     },
 
     getById: async (id: number) => {
-        const response = await api.get(`/auth/staff/${id}/`);
+        const response = await api.get(`/teachers/${id}/`);
         return response.data;
     },
 
     create: async (data: StaffFormData) => {
-        const response = await api.post('/auth/staff/', data);
+        const response = await api.post('/teachers/', data);
         return response.data;
     },
 
     update: async (id: number, data: Partial<StaffFormData>) => {
-        const response = await api.patch(`/auth/staff/${id}/`, data);
+        const response = await api.patch(`/teachers/${id}/`, data);
         return response.data;
     },
 
     delete: async (id: number) => {
-        await api.delete(`/auth/staff/${id}/`);
+        await api.delete(`/teachers/${id}/`);
+    },
+
+
+    importTeachers: async (formData: FormData) => {
+        const response = await api.post('/teachers/import/', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    },
+
+    toggleStatus: async (id: number) => {
+        const response = await api.post(`/teachers/${id}/toggle_status/`);
+        return response.data;
     }
 };
+
+

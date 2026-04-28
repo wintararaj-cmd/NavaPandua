@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from .models import School, SchoolSettings, AcademicYear, Holiday, MasterData
+from .models import School, SchoolSettings, AcademicYear, Holiday, MasterData, SchoolPublicPage, SchoolGalleryImage
 
 
 class SchoolSettingsSerializer(serializers.ModelSerializer):
@@ -113,3 +113,52 @@ class MasterDataSerializer(serializers.ModelSerializer):
         model = MasterData
         fields = '__all__'
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+class SchoolGalleryImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SchoolGalleryImage
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at', 'school_page']
+
+class SchoolPublicPageSerializer(serializers.ModelSerializer):
+    gallery_images = SchoolGalleryImageSerializer(many=True, read_only=True)
+    school_name = serializers.CharField(source='school.name', read_only=True)
+    school_logo = serializers.ImageField(source='school.logo', read_only=True)
+    school_address = serializers.CharField(source='school.get_full_address', read_only=True)
+    school_email = serializers.EmailField(source='school.email', read_only=True)
+    school_phone = serializers.CharField(source='school.phone', read_only=True)
+    school_code = serializers.CharField(source='school.code', read_only=True)
+    school_website = serializers.URLField(source='school.website', required=False, allow_blank=True)
+    school_slogan = serializers.CharField(source='school.slogan', required=False, allow_blank=True)
+    school_established_year = serializers.IntegerField(source='school.established_year', required=False, allow_null=True)
+    school_board = serializers.CharField(source='school.board', read_only=True)
+    school_affiliation = serializers.CharField(source='school.affiliation', read_only=True)
+    school_principal_name = serializers.CharField(source='school.principal_name', required=False, allow_blank=True)
+    school_institution_type = serializers.CharField(source='school.institution_type', read_only=True)
+    school_total_students = serializers.IntegerField(source='school.total_students', read_only=True)
+    school_total_teachers = serializers.IntegerField(source='school.total_teachers', read_only=True)
+    school_total_classes = serializers.IntegerField(source='school.total_classes', read_only=True)
+    school_city = serializers.CharField(source='school.city', read_only=True)
+    school_state = serializers.CharField(source='school.state', read_only=True)
+    
+    class Meta:
+        model = SchoolPublicPage
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at', 'school']
+
+    def update(self, instance, validated_data):
+        school_data = validated_data.pop('school', {})
+        
+        # Update SchoolPublicPage fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # Update related School fields
+        if school_data:
+            school = instance.school
+            for attr, value in school_data.items():
+                setattr(school, attr, value)
+            school.save()
+            
+        return instance

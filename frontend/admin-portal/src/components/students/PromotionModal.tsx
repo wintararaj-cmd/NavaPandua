@@ -66,14 +66,14 @@ const PromotionModal: React.FC<PromotionModalProps> = ({ isOpen, onClose, studen
 
         try {
             setLoading(true);
-            await studentService.promoteStudent({
-                student: student.id,
-                previous_class: student.current_class,
-                new_class: formData.new_class,
-                previous_session: student.school_details?.current_academic_year || '', // Ideally from student data
-                new_session: formData.new_session,
+            await studentService.promoteStudent(student.id, {
+                from_session: student.school_details?.current_academic_year || '', // Ideally from student data
+                to_class: formData.new_class,
+                to_section: formData.new_section,
+                to_session: formData.new_session,
                 remarks: formData.remarks
             });
+
             toast.success('Student promoted successfully');
             onSuccess();
             onClose();

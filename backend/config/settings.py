@@ -57,7 +57,9 @@ INSTALLED_APPS = [
     'apps.timetable',
     'apps.notifications',
     'apps.analytics',
+    'apps.inventory',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

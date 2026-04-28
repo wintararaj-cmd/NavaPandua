@@ -71,9 +71,10 @@ class FeeAllocationService:
             cls = target_class or fee_master.target_class
             
         if not cls:
-            raise ValidationError("A class must be specified for allocation.")
-
-        students = Student.objects.filter(current_class=cls, status='ACTIVE', school=fee_master.school)
+            # If no class specified, allocate to ALL active students in the school
+            students = Student.objects.filter(status='ACTIVE', school=fee_master.school)
+        else:
+            students = Student.objects.filter(current_class=cls, status='ACTIVE', school=fee_master.school)
         
         count = 0
         with transaction.atomic():

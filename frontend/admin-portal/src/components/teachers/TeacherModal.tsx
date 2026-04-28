@@ -30,7 +30,12 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
         department: '',
         designation: '',
         qualification: '',
-        joining_date: new Date().toISOString().split('T')[0]
+        joining_date: new Date().toISOString().split('T')[0],
+        current_address: '',
+        basic_salary: 0,
+        bank_account_no: '',
+        ifsc_code: '',
+        bank_name: ''
     });
 
     useEffect(() => {
@@ -47,7 +52,12 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                 department: teacher.department,
                 designation: teacher.designation,
                 qualification: teacher.qualification,
-                joining_date: teacher.joining_date
+                joining_date: teacher.joining_date,
+                current_address: teacher.current_address || '',
+                basic_salary: teacher.basic_salary || 0,
+                bank_account_no: teacher.bank_account_no || '',
+                ifsc_code: teacher.ifsc_code || '',
+                bank_name: teacher.bank_name || ''
             });
         } else {
             setFormData({
@@ -63,7 +73,12 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                 department: '',
                 designation: '',
                 qualification: '',
-                joining_date: new Date().toISOString().split('T')[0]
+                joining_date: new Date().toISOString().split('T')[0],
+                current_address: '',
+                basic_salary: 0,
+                bank_account_no: '',
+                ifsc_code: '',
+                bank_name: ''
             });
         }
     }, [teacher, isOpen]);
@@ -77,7 +92,7 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: name === 'basic_salary' ? parseFloat(value) || 0 : value
         }));
     };
 
@@ -86,8 +101,8 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-                    <div className="absolute inset-0 bg-gray-500 opacity-75" onClick={onClose}></div>
+                <div className="fixed inset-0 transition-opacity" aria-hidden="true" onClick={onClose}>
+                    <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
                 </div>
 
                 <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
@@ -102,7 +117,7 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
+                                    className="text-gray-400 hover:text-gray-500"
                                 >
                                     <X className="h-6 w-6" />
                                 </button>
@@ -115,34 +130,15 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">First Name</label>
-                                            <input
-                                                type="text"
-                                                name="first_name"
-                                                value={formData.first_name}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                            />
+                                            <input type="text" name="first_name" value={formData.first_name} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">Last Name</label>
-                                            <input
-                                                type="text"
-                                                name="last_name"
-                                                value={formData.last_name}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                            />
+                                            <input type="text" name="last_name" value={formData.last_name} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">Gender</label>
-                                            <select
-                                                name="gender"
-                                                value={formData.gender}
-                                                onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                            >
+                                            <select name="gender" value={formData.gender} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm">
                                                 <option value="MALE">Male</option>
                                                 <option value="FEMALE">Female</option>
                                                 <option value="OTHER">Other</option>
@@ -150,12 +146,7 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">Staff Role</label>
-                                            <select
-                                                name="role"
-                                                value={formData.role}
-                                                onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-bold text-indigo-600"
-                                            >
+                                            <select name="role" value={formData.role} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm font-bold text-indigo-600">
                                                 <option value="TEACHER">Teacher</option>
                                                 <option value="ACCOUNTANT">Accountant</option>
                                                 <option value="LIBRARIAN">Librarian</option>
@@ -167,48 +158,12 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">Email</label>
-                                            <input
-                                                type="email"
-                                                name="email"
-                                                value={formData.email}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                            />
+                                            <input type="email" name="email" value={formData.email} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">Phone</label>
-                                            <input
-                                                type="text"
-                                                name="phone"
-                                                value={formData.phone}
-                                                onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                            />
+                                            <input type="text" name="phone" value={formData.phone} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
-                                            <input
-                                                type="date"
-                                                name="date_of_birth"
-                                                value={formData.date_of_birth}
-                                                onChange={handleChange}
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                            />
-                                        </div>
-                                        {!teacher && (
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700">Password</label>
-                                                <input
-                                                    type="password"
-                                                    name="password"
-                                                    value={formData.password}
-                                                    onChange={handleChange}
-                                                    placeholder="Default: staff123"
-                                                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                                />
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
 
@@ -218,58 +173,42 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">Employee ID</label>
-                                            <input
-                                                type="text"
-                                                name="employee_id"
-                                                value={formData.employee_id}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                            />
+                                            <input type="text" name="employee_id" value={formData.employee_id} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">Joining Date</label>
-                                            <input
-                                                type="date"
-                                                name="joining_date"
-                                                value={formData.joining_date}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                            />
+                                            <input type="date" name="joining_date" value={formData.joining_date} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">Department</label>
-                                            <input
-                                                type="text"
-                                                name="department"
-                                                value={formData.department}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                            />
+                                            <input type="text" name="department" value={formData.department} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">Designation</label>
-                                            <input
-                                                type="text"
-                                                name="designation"
-                                                value={formData.designation}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                            />
+                                            <input type="text" name="designation" value={formData.designation} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
                                         </div>
-                                        <div className="col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700">Qualification</label>
-                                            <input
-                                                type="text"
-                                                name="qualification"
-                                                value={formData.qualification}
-                                                onChange={handleChange}
-                                                required
-                                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                            />
+                                    </div>
+                                </div>
+
+                                {/* Salary & Bank Information */}
+                                <div className="col-span-1 md:col-span-2">
+                                    <h4 className="text-sm font-medium text-gray-500 border-b pb-2 mb-4 mt-2">Salary & Bank Information</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">Basic Salary</label>
+                                            <input type="number" name="basic_salary" value={formData.basic_salary} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">Bank Name</label>
+                                            <input type="text" name="bank_name" value={formData.bank_name} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">Account Number</label>
+                                            <input type="text" name="bank_account_no" value={formData.bank_account_no} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
+                                        </div>
+                                        <div className="col-span-1 md:col-span-3">
+                                            <label className="block text-sm font-medium text-gray-700">Current Address</label>
+                                            <input type="text" name="current_address" value={formData.current_address} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
                                         </div>
                                     </div>
                                 </div>
@@ -280,22 +219,14 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
                             >
-                                {isLoading ? (
-                                    <>Saving...</>
-                                ) : (
-                                    <>
-                                        <Save className="h-4 w-4 mr-2" />
-                                        Save Staff Member
-                                    </>
-                                )}
+                                {isLoading ? 'Saving...' : <><Save className="h-4 w-4 mr-2" /> Save Staff Member</>}
                             </button>
                             <button
                                 type="button"
                                 onClick={onClose}
-                                disabled={isLoading}
-                                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                             >
                                 Cancel
                             </button>
