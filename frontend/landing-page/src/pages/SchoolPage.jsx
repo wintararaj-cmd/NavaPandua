@@ -133,7 +133,7 @@ export default function SchoolPage() {
               {[
                 {label:"Students",value:data.school_total_students>0?`${data.school_total_students}+`:"500+"},
                 {label:"Teachers",value:data.school_total_teachers>0?`${data.school_total_teachers}+`:"50+"},
-                {label:"Est.",value:data.school_established_year||"—"},
+                {label:"Est.",value:data.school_established_year||"-"},
               ].map((s,i)=>(
                 <div key={i}>
                   <div className="text-3xl font-black text-white">{s.value}</div>
@@ -148,112 +148,83 @@ export default function SchoolPage() {
               <div className="absolute -inset-4 rounded-[60px] blur-2xl opacity-30" style={{background:pc}}/>
               <div className="relative glass rounded-[40px] p-3 overflow-hidden shadow-2xl">
                 {heroImage ? (
-                  <img src={heroImage} alt="Campus" className="w-full aspect-[4/5] object-cover rounded-[30px]" />
+                  <img src={heroImage} alt="School" className="w-full h-auto rounded-[32px] object-cover aspect-[4/5]"/>
                 ) : (
-                  <div className="w-full aspect-[4/5] flex items-center justify-center rounded-[30px]" style={{background:"#0d1b3e"}}>
-                    <GraduationCap size={100} className="text-white/10"/>
+                  <div className="w-full aspect-[4/5] bg-gradient-to-br from-white/10 to-white/5 rounded-[32px] flex items-center justify-center">
+                    <GraduationCap size={120} className="text-white/20" />
                   </div>
                 )}
-                <div className="absolute bottom-8 left-6 right-6 glass rounded-2xl p-5 shadow-lg">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="flex -space-x-2">
-                      {[1,2,3].map(i=><div key={i} className="h-8 w-8 rounded-full border-2 border-[#0d1b3e] overflow-hidden"><img src={`https://i.pravatar.cc/80?u=s${i}`} alt=""/></div>)}
-                    </div>
-                    <span className="text-white text-sm font-bold">Join {data.school_total_students>0?data.school_total_students:500}+ students</span>
-                  </div>
-                  <p className="text-white/80 text-xs font-medium">"Best decision for our child's future."</p>
-                </div>
               </div>
-              {data.school_board && (
-                <div className="absolute -top-4 -right-4 glass shadow-xl rounded-2xl px-5 py-3 text-white font-black text-sm whitespace-nowrap z-10">
-                  {data.school_board} Board
-                </div>
-              )}
             </div>
           </motion.div>
         </div>
       </header>
 
-      {/* QUICK INFO BAR */}
-      <div className="bg-gray-900 text-white py-4 shadow-inner">
-        <div className="max-w-7xl mx-auto px-6 flex flex-wrap justify-center gap-x-12 gap-y-4">
-          {data.school_address&&<div className="flex items-center gap-2 text-sm text-white/80 font-medium"><MapPin size={16} style={{color:pc}}/>{data.school_address}</div>}
-          {data.school_phone&&<div className="flex items-center gap-2 text-sm text-white/80 font-medium"><Phone size={16} style={{color:pc}}/>{data.school_phone}</div>}
-          {data.school_email&&<div className="flex items-center gap-2 text-sm text-white/80 font-medium"><Mail size={16} style={{color:pc}}/>{data.school_email}</div>}
-          {data.school_board&&<div className="flex items-center gap-2 text-sm text-white/80 font-medium"><Shield size={16} style={{color:pc}}/>Affiliated: {data.school_board}</div>}
-        </div>
-      </div>
-
-      {/* VISION & MISSION */}
-      <section id="vision" className="py-24 bg-white">
+      {/* STATS */}
+      <section className="py-24 bg-white relative z-20 -mt-10 rounded-t-[60px] shadow-[0_-40px_100px_-20px_rgba(0,0,0,0.1)]">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="font-black tracking-widest uppercase text-sm block mb-3" style={{color:pc}}>Core Principles</span>
-            <h2 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight">Driven by <span className="text-transparent bg-clip-text" style={{backgroundImage:`linear-gradient(135deg,${pc},#818cf8)`}}>Purpose</span></h2>
-          </div>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              {title:"Our Vision",content:data.vision||"To be a center of academic excellence.",icon:Target,bg:"from-blue-50 to-indigo-50",ic:"text-indigo-600"},
-              {title:"Our Mission",content:data.mission||"To empower every student to reach their potential.",icon:Rocket,bg:"from-purple-50 to-pink-50",ic:"text-purple-600"},
-              {title:"Our Values",content:"Integrity, innovation, and holistic development to prepare students for a global future.",icon:Award,bg:"from-amber-50 to-orange-50",ic:"text-amber-600"},
-            ].map((item,i)=>(
-              <motion.div key={i} initial="hidden" whileInView="show" viewport={{once:true}} variants={fadeUp} transition={{delay:i*0.1}} className={`card-hover p-10 rounded-3xl bg-gradient-to-br ${item.bg} border border-white shadow-md`}>
-                <div className={`w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm ${item.ic}`}><item.icon size={28}/></div>
-                <h3 className="text-xl font-black text-gray-900 mb-4">{item.title}</h3>
-                <p className="text-gray-600 leading-relaxed font-medium">{item.content}</p>
-              </motion.div>
+              { icon: Target, title: "Our Mission", desc: data.school_mission || "To provide holistic education that empowers students to lead and innovate." },
+              { icon: Star, title: "Our Vision", desc: data.school_vision || "To be a global benchmark in academic excellence and character building." },
+              { icon: Award, title: "Excellence", desc: "Recognized for consistent academic performance and extracurricular leadership." }
+            ].map((item, idx) => (
+              <div key={idx} className="p-10 rounded-[40px] bg-gray-50 border border-gray-100 card-hover group">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-8 bg-white shadow-sm group-hover:shadow-md transition-all" style={{color:pc}}>
+                  <item.icon size={32} />
+                </div>
+                <h3 className="text-2xl font-black text-gray-900 mb-4">{item.title}</h3>
+                <p className="text-gray-500 leading-relaxed">{item.desc}</p>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ABOUT */}
-      <section id="about" className="py-24 bg-gray-50 border-y border-gray-100">
+      <section id="about" className="py-24 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-20 items-center">
+            <div className="relative">
+              <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full blur-3xl opacity-20" style={{background:pc}}/>
+              <div className="relative rounded-[40px] overflow-hidden shadow-2xl">
+                 {heroImage ? (
+                    <img src={heroImage} alt="Campus" className="w-full h-auto" />
+                 ) : (
+                    <div className="w-full aspect-square bg-gray-100 flex items-center justify-center"><BookOpen size={64} className="text-gray-300"/></div>
+                 )}
+              </div>
+            </div>
             <div>
               <span className="font-black tracking-widest uppercase text-sm block mb-4" style={{color:pc}}>Our Story</span>
-              <h2 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight mb-8">Shaping <span style={{color:pc}}>Future</span> Leaders</h2>
-              <div className="text-gray-600 text-lg leading-relaxed mb-10 whitespace-pre-wrap">{data.about_text||"We provide a nurturing environment where students thrive academically and personally."}</div>
-              <div className="grid sm:grid-cols-2 gap-y-4 gap-x-8 mb-10">
-                {["World-class Faculty","Modern Infrastructure","Holistic Curriculum","Safe Campus","Sports & Arts","Digital Learning"].map((f,i)=>(
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0" style={{background:`${pc}20`}}><CheckCircle2 size={14} style={{color:pc}}/></div>
-                    <span className="text-gray-800 font-bold text-sm">{f}</span>
-                  </div>
-                ))}
+              <h2 className="text-4xl md:text-5xl font-black text-gray-900 leading-tight mb-8">Nurturing Minds, <br/><span style={{color:pc}}>Defining Futures.</span></h2>
+              <div className="space-y-6 text-gray-500 text-lg leading-relaxed">
+                <p>{data.school_about || "Founded with a vision to revolutionize learning, we combine traditional values with modern technology. Our campus provides a sanctuary for intellectual growth and creative expression."}</p>
+                <div className="grid sm:grid-cols-2 gap-4 pt-6">
+                  {["Expert Faculty", "Modern Labs", "Sports Academy", "Digital Classrooms"].map(f=>(
+                    <div key={f} className="flex items-center gap-3">
+                      <div className="h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0" style={{background:`${pc}15`, color:pc}}><CheckCircle2 size={14}/></div>
+                      <span className="text-sm font-bold text-gray-700">{f}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <Link to={`/admission?school=${schoolCode}`} className="inline-flex items-center gap-3 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all hover:-translate-y-1" style={{background:pc}}>Apply for Admission <ArrowRight size={18}/></Link>
-            </div>
-            <div className="grid grid-cols-2 gap-6">
-              {[
-                {label:"Students",value:data.school_total_students>0?data.school_total_students:"500+",icon:Users,color:"bg-blue-500"},
-                {label:"Faculty",value:data.school_total_teachers>0?data.school_total_teachers:"50+",icon:BookOpen,color:"bg-purple-500"},
-                {label:"Years Exp",value:data.school_established_year?(new Date().getFullYear()-data.school_established_year)+"+":"10+",icon:Calendar,color:"bg-amber-500"},
-                {label:"Board",value:data.school_board||"Certified",icon:Award,color:"bg-green-500"},
-              ].map((stat,i)=>(
-                <motion.div key={i} initial="hidden" whileInView="show" viewport={{once:true}} variants={fadeUp} transition={{delay:i*0.1}} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 card-hover text-center md:text-left">
-                  <div className={`${stat.color} w-12 h-12 rounded-2xl flex items-center justify-center text-white mb-4 mx-auto md:mx-0 shadow-sm`}><stat.icon size={22}/></div>
-                  <div className="text-2xl md:text-3xl font-black text-gray-900 mb-1">{stat.value}</div>
-                  <div className="text-gray-400 text-xs font-bold uppercase tracking-wider">{stat.label}</div>
-                </motion.div>
-              ))}
             </div>
           </div>
         </div>
       </section>
 
       {/* GALLERY */}
-      {data.gallery_images?.length>0&&(
+      {data.gallery_images?.length > 0 && (
         <section id="gallery" className="py-24 bg-white">
+          <div className="max-w-7xl mx-auto px-6 text-center mb-16">
+            <span className="font-black tracking-widest uppercase text-sm block mb-4" style={{color:pc}}>Campus Life</span>
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900">Life at <span style={{color:pc}}>Campus</span></h2>
+          </div>
           <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center max-w-2xl mx-auto mb-16">
-              <span className="font-black tracking-widest uppercase text-sm block mb-3" style={{color:pc}}>Visual Journey</span>
-              <h2 className="text-4xl md:text-5xl font-black text-gray-900">Moments That <span style={{color:pc}}>Matter</span></h2>
-            </div>
             <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-              {data.gallery_images.map((img,i)=>(
-                <motion.div key={img.id} initial="hidden" whileInView="show" viewport={{once:true}} variants={fadeUp} transition={{delay:i*0.05}} className="relative group overflow-hidden rounded-3xl shadow-md hover:shadow-xl transition-all duration-500 cursor-pointer break-inside-avoid">
+              {data.gallery_images.map((img, idx) => (
+                <motion.div key={idx} whileHover={{y:-5}} className="relative group rounded-3xl overflow-hidden shadow-lg">
                   <img src={img.image} alt={img.caption} className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"/>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">
                     <p className="text-white font-bold text-lg translate-y-4 group-hover:translate-y-0 transition-transform duration-500">{img.caption}</p>
