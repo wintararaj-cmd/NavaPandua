@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and install common tools
+# Upgrade pip and install common tools (cache-bust: 2026-05-07)
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
 # Install Python dependencies in stages to improve caching

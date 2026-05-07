@@ -38,7 +38,7 @@ django-anymail==10.2
 twilio==8.11.1
 
 # Payment gateways
-razorpay==1.4.1
+razorpay==1.4.2
 
 # Utilities
 python-decouple==3.8
