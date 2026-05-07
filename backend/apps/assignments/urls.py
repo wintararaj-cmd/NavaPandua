@@ -7,5 +7,6 @@ router.register('submissions', AssignmentSubmissionViewSet, basename='assignment
 router.register('', AssignmentViewSet, basename='assignments')
 
 urlpatterns = [
+    path('my-assignments/', AssignmentViewSet.as_view({'get': 'my_assignments'}), name='my-assignments'),
     path('', include(router.urls)),
 ]

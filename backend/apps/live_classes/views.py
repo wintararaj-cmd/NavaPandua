@@ -40,6 +40,12 @@ class LiveClassViewSet(viewsets.ModelViewSet):
                  
         return queryset
 
+    @action(detail=False, methods=['get'], url_path='my-classes')
+    def my_classes(self, request):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
         user = self.request.user
         if not user.school:

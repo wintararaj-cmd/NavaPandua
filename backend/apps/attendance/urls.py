@@ -13,5 +13,6 @@ router.register('leave-types', LeaveTypeViewSet, basename='leave-types')
 router.register('leaves', LeaveApplicationViewSet, basename='leave-applications')
 
 urlpatterns = [
+    path('history/', StudentAttendanceViewSet.as_view({'get': 'my_attendance'}), name='attendance-history'),
     path('', include(router.urls)),
 ]

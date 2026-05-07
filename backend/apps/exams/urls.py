@@ -13,5 +13,7 @@ router.register(r'schedules', ExamScheduleViewSet)
 router.register(r'results', ExamResultViewSet)
 
 urlpatterns = [
+    path('student-schedule/', ExamScheduleViewSet.as_view({'get': 'student_schedule'}), name='student-exam-schedule'),
+    path('my-results/', ExamResultViewSet.as_view({'get': 'my_results'}), name='student-exam-results'),
     path('', include(router.urls)),
 ]

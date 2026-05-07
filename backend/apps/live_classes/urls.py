@@ -6,5 +6,6 @@ router = DefaultRouter()
 router.register('', LiveClassViewSet, basename='live-classes')
 
 urlpatterns = [
+    path('my-classes/', LiveClassViewSet.as_view({'get': 'my_classes'}), name='my-live-classes'),
     path('', include(router.urls)),
 ]

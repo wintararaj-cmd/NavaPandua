@@ -146,10 +146,37 @@ class FeeAllocationViewSet(FeeBaseViewSet):
         
         return HttpResponse(buffer, content_type='image/png')
 
+    @action(detail=False, methods=['get'], url_path='student-summary')
+    def student_summary(self, request):
+        from django.db.models import Sum
+        user = request.user
+        if user.role != 'STUDENT' or not hasattr(user, 'student_profile'):
+            return Response({'error': 'User is not a student'}, status=status.HTTP_403_FORBIDDEN)
+            
+        student = user.student_profile
+        allocations = self.get_queryset().filter(student=student)
+        
+        summary_data = allocations.aggregate(
+            total_amount=Sum('amount'),
+            total_paid=Sum('paid_amount')
+        )
+        
+        total_amount = summary_data['total_amount'] or 0
+        total_paid = summary_data['total_paid'] or 0
+        total_remaining = total_amount - total_paid
+        
+        return Response({
+            'total_amount': total_amount,
+            'total_paid': total_paid,
+            'total_remaining': total_remaining,
+            'allocation_count': allocations.count(),
+            'pending_count': allocations.filter(status__in=['UNPAID', 'PARTIAL']).count()
+        })
+
     @action(detail=False, methods=['get'], url_path='my-allocations')
     def my_allocations(self, request):
         user = request.user
-        if user.role == 'STUDENT':
+        if user.role == 'STUDENT' and hasattr(user, 'student_profile'):
             student = user.student_profile
             allocations = self.get_queryset().filter(student=student)
             serializer = self.get_serializer(allocations, many=True)

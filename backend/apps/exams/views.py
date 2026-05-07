@@ -194,11 +194,40 @@ class ExamScheduleViewSet(ExamBaseViewSet):
     serializer_class = ExamScheduleSerializer
     filterset_fields = ['exam', 'subject']
 
+    @action(detail=False, methods=['get'], url_path='student-schedule')
+    def student_schedule(self, request):
+        user = request.user
+        if user.role != 'STUDENT' or not hasattr(user, 'student_profile'):
+            return Response({'error': 'User is not a student'}, status=status.HTTP_403_FORBIDDEN)
+            
+        student = user.student_profile
+        schedules = ExamSchedule.objects.filter(
+            exam__school=student.school,
+            exam__is_published=True # Assuming there's an is_published field or similar logic
+        ).order_by('date', 'start_time')
+        
+        # If there's a need to filter by student's class, add:
+        # schedules = schedules.filter(exam__target_class=student.current_class)
+        
+        serializer = self.get_serializer(schedules, many=True)
+        return Response(serializer.data)
+
 class ExamResultViewSet(ExamBaseViewSet):
     queryset = ExamResult.objects.all()
     serializer_class = ExamResultSerializer
     filterset_fields = ['exam_schedule', 'student', 'grade']
     search_fields = ['student__first_name', 'student__last_name']
+
+    @action(detail=False, methods=['get'], url_path='my-results')
+    def my_results(self, request):
+        user = request.user
+        if user.role != 'STUDENT' or not hasattr(user, 'student_profile'):
+            return Response({'error': 'User is not a student'}, status=status.HTTP_403_FORBIDDEN)
+            
+        student = user.student_profile
+        results = self.get_queryset().filter(student=student).order_by('-exam_schedule__date')
+        serializer = self.get_serializer(results, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['post'], url_path='bulk-save')
     def bulk_save_results(self, request):
