@@ -1,4 +1,3 @@
-import razorpay
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
 
@@ -6,7 +5,11 @@ class PaymentGateway:
     def __init__(self):
         self.client = None
         if hasattr(settings, 'RAZORPAY_KEY_ID') and hasattr(settings, 'RAZORPAY_KEY_SECRET'):
-            self.client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            try:
+                import razorpay
+                self.client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            except ImportError:
+                pass  # razorpay not available; gateway will run in mock mode
 
     def create_order(self, amount, currency='INR', receipt=None, notes=None):
         if not self.client:
