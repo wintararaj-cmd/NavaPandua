@@ -48,3 +48,6 @@ pytz==2023.3.post1
 # Validation
 phonenumbers==8.13.27
 email-validator==2.1.0.post1
+
+# Required for packages that use pkg_resources (e.g. razorpay)
+setuptools>=68.0.0
