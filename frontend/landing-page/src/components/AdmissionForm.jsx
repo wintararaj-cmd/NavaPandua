@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import toast from 'react-hot-toast';
 import { CheckCircle, Download, ArrowRight, ArrowLeft, Building, User, Users, GraduationCap, BookOpen, ClipboardList } from 'lucide-react';
 
@@ -93,7 +93,7 @@ const AdmissionForm = () => {
     useEffect(() => {
         const fetchSchools = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/v1/admissions/public/');
+                const response = await api.get('/admissions/public/');
                 setSchools(response.data.data);
             } catch (error) {
                 console.error('Failed to fetch schools:', error);
@@ -139,8 +139,8 @@ const AdmissionForm = () => {
                 }
             });
 
-            const response = await axios.post(
-                'http://localhost:8000/api/v1/admissions/public/', 
+            const response = await api.post(
+                '/admissions/public/', 
                 data,
                 { 
                     responseType: 'blob',

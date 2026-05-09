@@ -156,12 +156,16 @@ curl -fsSL https://cdn.coollabs.io/coolify/install.sh | bash
 2. **Build Pack**: **Nixpacks** → Name: `LandingPage` → Click **Save**.
 3. **Configuration** (General Tab):
    - **Is it a static site?**: ✅ Yes
-   - **Is it a SPA?**: ❌ No
+   - **Is it a SPA?**: ✅ Yes
    - **Static Image**: `nginx:alpine`
    - **Base Directory**: `/frontend/landing-page`
    - **Publish Directory**: `dist`
 4. **Domains**: `https://navadaya.in, https://nabodaya.in`
-5. **Deploy**: Click **Deploy**.
+5. **Environment Variables**:
+    ```env
+    VITE_API_URL=https://api.navadaya.in/api/v1
+    ```
+6. **Deploy**: Click **Deploy**.
 
 ---
 
