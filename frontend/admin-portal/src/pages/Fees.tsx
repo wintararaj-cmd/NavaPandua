@@ -10,8 +10,9 @@ import FeePaymentModal from '../components/fees/FeePaymentModal';
 import toast from 'react-hot-toast';
 
 export default function Fees() {
-    const [activeTab, setActiveTab] = useState<'config' | 'allocation' | 'collect' | 'history'>('collect');
+    const [activeTab, setActiveTab] = useState<'collect' | 'allocation' | 'history' | 'config'>('collect');
     const [loading, setLoading] = useState(false);
+    const [summary, setSummary] = useState<any>(null);
 
     // Modal states
     const [showMasterModal, setShowMasterModal] = useState(false);
