@@ -216,7 +216,15 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">Employee ID</label>
-                                            <input type="text" name="employee_id" value={formData.employee_id} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
+                                            <input 
+                                                type="text" 
+                                                name="employee_id" 
+                                                value={formData.employee_id} 
+                                                onChange={handleChange} 
+                                                placeholder={initialData ? "" : "Auto-generated on save"}
+                                                readOnly={!initialData}
+                                                className={`mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm ${!initialData ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                                            />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">Joining Date</label>
