@@ -25,6 +25,8 @@ import Settings from './pages/Settings';
 import Assignments from './pages/Assignments';
 import Notifications from './pages/Notifications';
 import Inventory from './pages/Inventory';
+import Users from './pages/Users';
+
 
 
 // Layouts
@@ -81,6 +83,8 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="organizations" element={<AdminRoute><Organizations /></AdminRoute>} />
             <Route path="schools" element={<AdminRoute><Schools /></AdminRoute>} />
+            <Route path="users" element={<AdminRoute><Users /></AdminRoute>} />
+
             <Route path="admissions" element={<Admissions />} />
             <Route path="students" element={<Students />} />
             <Route path="teachers" element={<Teachers />} />

@@ -21,7 +21,8 @@ from .views import (
     StaffListCreateView,
     StaffDetailView,
     UserListCreateView,
-    UserDetailView
+    UserDetailView,
+    AdminResetPasswordView
 )
 
 app_name = 'accounts'
@@ -55,4 +56,5 @@ urlpatterns = [
     # User Management (Manage Users / Activate-Deactivate)
     path('users/', UserListCreateView.as_view(), name='user_list_create'),
     path('users/<int:pk>/', UserDetailView.as_view(), name='user_detail'),
+    path('users/<int:pk>/reset-password/', AdminResetPasswordView.as_view(), name='admin_reset_password'),
 ]

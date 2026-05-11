@@ -499,4 +499,48 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return User.objects.filter(school=self.request.user.school)
+        user = self.request.user
+        if user.is_superuser or user.is_super_admin:
+            return User.objects.all()
+        return User.objects.filter(school=user.school)
+
+class AdminResetPasswordView(APIView):
+    """
+    Allow admins to reset any user's password.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        from apps.accounts.permissions import IsSuperAdmin, IsSchoolAdmin
+        
+        user = request.user
+        # Check if the requester is a super admin or school admin
+        is_super = user.is_superuser or user.is_super_admin
+        is_school_admin = user.role == 'SCHOOL_ADMIN'
+        
+        if not (is_super or is_school_admin):
+            return Response({'error': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+            
+        try:
+            target_user = User.objects.get(pk=pk)
+            
+            # Security check: School admin can only reset users in their own school
+            if is_school_admin and not is_super:
+                if target_user.school != user.school:
+                    return Response({'error': 'You can only reset passwords for users in your school.'}, status=status.HTTP_403_FORBIDDEN)
+            
+            new_password = request.data.get('password')
+            if not new_password:
+                return Response({'error': 'Password is required.'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            target_user.set_password(new_password)
+            target_user.save()
+            
+            # Log activity
+            log_user_activity(user, 'ADMIN_RESET_PASSWORD', f'Admin reset password for user {target_user.email}', request)
+            
+            return Response({'success': True, 'message': f'Password for {target_user.email} has been reset successfully.'})
+            
+        except User.DoesNotExist:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+

@@ -98,7 +98,9 @@ class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer(read_only=True)
     staff_profile = StaffProfileSerializer(read_only=True)
     full_name = serializers.SerializerMethodField()
+    school_name = serializers.SerializerMethodField()
     allowed_schools = serializers.SerializerMethodField()
+
     
     class Meta:
         model = User
@@ -106,8 +108,9 @@ class UserSerializer(serializers.ModelSerializer):
             'id', 'username', 'email', 'first_name', 'last_name',
             'full_name', 'phone', 'role', 'is_email_verified',
             'is_phone_verified', 'profile_picture', 'date_of_birth',
-            'gender', 'organization', 'school', 'is_active',
+            'gender', 'organization', 'school', 'school_name', 'is_active',
             'date_joined', 'last_login', 'profile', 'staff_profile', 'allowed_schools'
+
         ]
         read_only_fields = [
             'id', 'username', 'is_email_verified', 'is_phone_verified',
@@ -116,6 +119,10 @@ class UserSerializer(serializers.ModelSerializer):
     
     def get_full_name(self, obj):
         return obj.get_full_name()
+
+    def get_school_name(self, obj):
+        return obj.school.name if obj.school else 'System Wide'
+
 
     def get_allowed_schools(self, obj):
         """Get list of schools user is allowed to access."""

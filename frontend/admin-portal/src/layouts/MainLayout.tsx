@@ -49,8 +49,10 @@ export default function MainLayout() {
             items: [
                 { icon: Building2, label: 'Organizations', path: '/organizations' },
                 { icon: School, label: 'Schools', path: '/schools' },
+                { icon: UserCircle, label: 'Manage Users', path: '/users' },
             ],
         }] : []),
+
         {
             title: 'People',
             items: [
