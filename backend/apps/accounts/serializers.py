@@ -50,8 +50,9 @@ class CreateStaffSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'email', 'first_name', 'last_name', 'phone', 'role', 'gender',
-            'employee_id', 'department', 'designation', 'joining_date'
+            'employee_id', 'department', 'designation', 'joining_date', 'profile_picture'
         ]
+
         extra_kwargs = {
             'first_name': {'required': True},
             'last_name': {'required': True},

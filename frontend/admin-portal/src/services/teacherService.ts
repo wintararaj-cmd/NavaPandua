@@ -44,6 +44,7 @@ export interface StaffFormData {
     bank_account_no?: string;
     ifsc_code?: string;
     bank_name?: string;
+    profile_picture?: any;
 }
 
 export const teacherService = {
@@ -58,14 +59,33 @@ export const teacherService = {
     },
 
     create: async (data: StaffFormData) => {
-        const response = await api.post('/teachers/', data);
+        // Use FormData for file uploads
+        const formData = new FormData();
+        Object.entries(data).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                formData.append(key, value);
+            }
+        });
+        const response = await api.post('/teachers/', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
         return response.data;
     },
 
     update: async (id: number, data: Partial<StaffFormData>) => {
-        const response = await api.patch(`/teachers/${id}/`, data);
+        // Use FormData for file uploads
+        const formData = new FormData();
+        Object.entries(data).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) {
+                formData.append(key, value);
+            }
+        });
+        const response = await api.patch(`/teachers/${id}/`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
         return response.data;
     },
+
 
     delete: async (id: number) => {
         await api.delete(`/teachers/${id}/`);

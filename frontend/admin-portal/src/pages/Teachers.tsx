@@ -183,10 +183,19 @@ export default function Teachers() {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <div className="flex-shrink-0 h-10 w-10">
-                                                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 font-bold">
-                                                        {teacher.user.first_name[0]}
-                                                    </div>
+                                                    {teacher.user.profile_picture ? (
+                                                        <img 
+                                                            src={teacher.user.profile_picture} 
+                                                            alt="" 
+                                                            className="h-10 w-10 rounded-xl object-cover shadow-sm border border-gray-100" 
+                                                        />
+                                                    ) : (
+                                                        <div className="h-10 w-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-500 font-black">
+                                                            {teacher.user.first_name[0]}
+                                                        </div>
+                                                    )}
                                                 </div>
+
                                                 <div className="ml-4">
                                                     <div className="text-sm font-medium text-gray-900">
                                                         {teacher.user.first_name} {teacher.user.last_name}

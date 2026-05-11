@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, User as UserIcon } from 'lucide-react';
+
 import type { Staff as Teacher, StaffFormData as TeacherFormData } from '../../services/teacherService';
 
 interface TeacherModalProps {
@@ -35,8 +36,10 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
         basic_salary: 0,
         bank_account_no: '',
         ifsc_code: '',
-        bank_name: ''
+        bank_name: '',
+        profile_picture: ''
     });
+
 
     useEffect(() => {
         if (teacher) {
@@ -57,8 +60,10 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                 basic_salary: teacher.basic_salary || 0,
                 bank_account_no: teacher.bank_account_no || '',
                 ifsc_code: teacher.ifsc_code || '',
-                bank_name: teacher.bank_name || ''
+                bank_name: teacher.bank_name || '',
+                profile_picture: teacher.user.profile_picture || ''
             });
+
         } else {
             setFormData({
                 email: '',
@@ -78,8 +83,10 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                 basic_salary: 0,
                 bank_account_no: '',
                 ifsc_code: '',
-                bank_name: ''
+                bank_name: '',
+                profile_picture: ''
             });
+
         }
     }, [teacher, isOpen]);
 
@@ -164,8 +171,44 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                             <label className="block text-sm font-medium text-gray-700">Phone</label>
                                             <input type="text" name="phone" value={formData.phone} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
                                         </div>
+                                        <div className="md:col-span-3">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Staff Image / Profile Picture</label>
+                                            <div className="flex items-center gap-6">
+                                                <div className="h-24 w-24 rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 overflow-hidden group relative">
+                                                    {formData.profile_picture ? (
+                                                        <img 
+                                                            src={typeof formData.profile_picture === 'string' ? formData.profile_picture : URL.createObjectURL(formData.profile_picture)} 
+                                                            alt="Preview" 
+                                                            className="h-full w-full object-cover" 
+                                                        />
+                                                    ) : (
+                                                        <UserIcon className="h-10 w-10 text-gray-300" />
+                                                    )}
+                                                    <input 
+                                                        type="file" 
+                                                        accept="image/*"
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                setFormData(prev => ({ ...prev, profile_picture: file }));
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-xs text-gray-500 mb-2 uppercase tracking-widest font-black">Upload requirements</p>
+                                                    <ul className="text-xs text-gray-400 space-y-1">
+                                                        <li>• Recommended size: 400x400px</li>
+                                                        <li>• Format: JPG, PNG, or WEBP</li>
+                                                        <li>• Max file size: 2MB</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+
 
                                 {/* Professional Information */}
                                 <div className="col-span-1 md:col-span-2">
