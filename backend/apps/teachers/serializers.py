@@ -22,22 +22,33 @@ class TeacherSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = ['created_at', 'updated_at', 'school']
+        extra_kwargs = {
+            'employee_id': {'required': False, 'allow_blank': True}
+        }
 
     def to_internal_value(self, data):
+        # Convert QueryDict to a standard mutable dict if necessary
+        if hasattr(data, 'dict'):
+            mutable_data = data.dict()
+            # Restore files if any
+            if hasattr(data, 'FILES'):
+                mutable_data.update(data.FILES.dict())
+        else:
+            mutable_data = data.copy()
+
         # Handle flat data from frontend by nesting user-related fields
-        if 'user' not in data and ('email' in data or 'first_name' in data):
+        if 'user' not in mutable_data and ('email' in mutable_data or 'first_name' in mutable_data):
             user_data = {}
             user_fields = ['email', 'first_name', 'last_name', 'phone', 'role', 'gender', 'date_of_birth', 'profile_picture']
             for field in user_fields:
-                if field in data:
-                    user_data[field] = data[field]
-            
-            # Create a copy of data to avoid modifying the original during iteration
-            mutable_data = data.copy()
-            mutable_data['user'] = user_data
-            data = mutable_data
+                if field in mutable_data:
+                    user_data[field] = mutable_data[field]
 
-        return super().to_internal_value(data)
+            
+            mutable_data['user'] = user_data
+
+        return super().to_internal_value(mutable_data)
+
 
 
     def create(self, validated_data):
