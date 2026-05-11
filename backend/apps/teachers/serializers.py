@@ -42,8 +42,7 @@ class TeacherSerializer(serializers.ModelSerializer):
             user_fields = ['email', 'first_name', 'last_name', 'phone', 'role', 'gender', 'date_of_birth', 'profile_picture']
             for field in user_fields:
                 if field in mutable_data:
-                    user_data[field] = mutable_data[field]
-
+                    user_data[field] = mutable_data.pop(field)
             
             mutable_data['user'] = user_data
 
@@ -66,15 +65,15 @@ class TeacherSerializer(serializers.ModelSerializer):
         valid_user_fields = [f.name for f in User._meta.get_fields()]
         user_create_data = {k: v for k, v in user_data.items() if k in valid_user_fields}
         
-        try:
-            # Ensure media directories exist
-            import os
-            from django.conf import settings
-            for sub_dir in ['profile_pictures', 'schools/logos', 'schools/gallery']:
-                full_path = os.path.join(settings.MEDIA_ROOT, sub_dir)
-                if not os.path.exists(full_path):
-                    os.makedirs(full_path, exist_ok=True)
+        # Ensure media directories exist
+        import os
+        from django.conf import settings
+        for sub_dir in ['profile_pictures', 'schools/logos', 'schools/gallery']:
+            full_path = os.path.join(settings.MEDIA_ROOT, sub_dir)
+            if not os.path.exists(full_path):
+                os.makedirs(full_path, exist_ok=True)
 
+        try:
             with transaction.atomic():
                 # Create User
                 user = User.objects.create_user(password=password, **user_create_data)
@@ -101,10 +100,13 @@ class TeacherSerializer(serializers.ModelSerializer):
 
                 # Create Teacher
                 teacher = Teacher.objects.create(user=user, **validated_data)
+                
+                # Handle ManyToMany
+                if assigned_schools:
+                    teacher.assigned_schools.set(assigned_schools)
+                    
+                return teacher
         except Exception as e:
-            import traceback
-            print(f"Error creating teacher: {str(e)}")
-            print(traceback.format_exc())
             raise serializers.ValidationError({"detail": f"Backend Error: {str(e)}"})
 
 
