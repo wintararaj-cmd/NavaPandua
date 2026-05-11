@@ -66,32 +66,39 @@ class TeacherSerializer(serializers.ModelSerializer):
         valid_user_fields = [f.name for f in User._meta.get_fields()]
         user_create_data = {k: v for k, v in user_data.items() if k in valid_user_fields}
         
-        with transaction.atomic():
-            # Create User
-            user = User.objects.create_user(password=password, **user_create_data)
-            
-            # Generate employee_id if not present
-            if not validated_data.get('employee_id'):
-                school = validated_data.get('school')
-                if not school and 'request' in self.context:
-                    school = self.context['request'].user.school
+        try:
+            with transaction.atomic():
+                # Create User
+                user = User.objects.create_user(password=password, **user_create_data)
                 
-                if school:
-                    from apps.schools.models import SchoolSettings
-                    from apps.core.utils import generate_next_id
+                # Generate employee_id if not present
+                if not validated_data.get('employee_id'):
+                    school = validated_data.get('school')
+                    if not school and 'request' in self.context:
+                        school = self.context['request'].user.school
                     
-                    school_settings = SchoolSettings.objects.filter(school=school).first()
-                    prefix = school_settings.teacher_id_prefix if school_settings else 'EMP'
-                    length = school_settings.id_number_length if school_settings else 6
-                    
-                    validated_data['employee_id'] = generate_next_id(Teacher, 'employee_id', prefix, length)
-                else:
-                    # Fallback to random if no school context
-                    import random
-                    validated_data['employee_id'] = f"EMP{random.randint(1000, 9999)}"
+                    if school:
+                        from apps.schools.models import SchoolSettings
+                        from apps.core.utils import generate_next_id
+                        
+                        school_settings = SchoolSettings.objects.filter(school=school).first()
+                        prefix = school_settings.teacher_id_prefix if school_settings else 'EMP'
+                        length = school_settings.id_number_length if school_settings else 6
+                        
+                        validated_data['employee_id'] = generate_next_id(Teacher, 'employee_id', prefix, length)
+                    else:
+                        # Fallback to random if no school context
+                        import random
+                        validated_data['employee_id'] = f"EMP{random.randint(1000, 9999)}"
 
-            # Create Teacher
-            teacher = Teacher.objects.create(user=user, **validated_data)
+                # Create Teacher
+                teacher = Teacher.objects.create(user=user, **validated_data)
+        except Exception as e:
+            import traceback
+            print(f"Error creating teacher: {str(e)}")
+            print(traceback.format_exc())
+            raise serializers.ValidationError({"detail": f"Backend Error: {str(e)}"})
+
 
             
             # Handle ManyToMany
