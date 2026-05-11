@@ -140,7 +140,7 @@ class TeacherViewSet(SchoolFilterMixin, viewsets.ModelViewSet):
         
         if not school:
             from apps.schools.models import School
-            if user.is_superuser:
+            if user.is_superuser or getattr(user, 'is_super_admin', False):
                 school = School.objects.filter(is_active=True).first()
         
         if not school:

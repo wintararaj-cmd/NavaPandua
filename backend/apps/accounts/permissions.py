@@ -12,28 +12,44 @@ class IsSchoolAdmin(permissions.BasePermission):
     Allows access only to school admins.
     """
     def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and request.user.is_school_admin)
+        return bool(
+            request.user and 
+            request.user.is_authenticated and 
+            (request.user.is_school_admin or request.user.is_super_admin)
+        )
 
 class IsTeacher(permissions.BasePermission):
     """
     Allows access only to teachers.
     """
     def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and request.user.is_teacher)
+        return bool(
+            request.user and 
+            request.user.is_authenticated and 
+            (request.user.is_teacher or request.user.is_super_admin)
+        )
 
 class IsStudent(permissions.BasePermission):
     """
     Allows access only to students.
     """
     def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and request.user.is_student)
+        return bool(
+            request.user and 
+            request.user.is_authenticated and 
+            (request.user.is_student or request.user.is_super_admin)
+        )
 
 class IsParent(permissions.BasePermission):
     """
     Allows access only to parents.
     """
     def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and request.user.is_parent)
+        return bool(
+            request.user and 
+            request.user.is_authenticated and 
+            (request.user.is_parent or request.user.is_super_admin)
+        )
 
 class IsAdminOrTeacher(permissions.BasePermission):
     """
