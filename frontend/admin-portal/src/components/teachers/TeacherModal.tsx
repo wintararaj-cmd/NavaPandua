@@ -221,9 +221,9 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                                 name="employee_id" 
                                                 value={formData.employee_id} 
                                                 onChange={handleChange} 
-                                                placeholder={initialData ? "" : "Auto-generated on save"}
-                                                readOnly={!initialData}
-                                                className={`mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm ${!initialData ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                                                placeholder={teacher ? "" : "Auto-generated on save"}
+                                                readOnly={!teacher}
+                                                className={`mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm ${!teacher ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                                             />
                                         </div>
                                         <div>
