@@ -82,7 +82,7 @@ export default function Teachers() {
             setIsModalOpen(false);
             fetchTeachers();
         } catch (error: any) {
-            console.error('Error saving staff:', error);
+            console.error('Error saving staff:', error, error.response?.data);
             const data = error.response?.data;
             let message = 'Failed to save staff member';
             
@@ -95,10 +95,22 @@ export default function Teachers() {
                     message = data.message;
                 } else {
                     // Collect all validation errors
-                    const errorMessages = Object.entries(data).map(([key, value]) => {
-                        const val = Array.isArray(value) ? value[0] : value;
-                        return `${key}: ${val}`;
-                    });
+                    const parseErrors = (obj: any): string[] => {
+                        let msgs: string[] = [];
+                        for (const [key, value] of Object.entries(obj)) {
+                            if (typeof value === 'string') {
+                                msgs.push(`${key}: ${value}`);
+                            } else if (Array.isArray(value)) {
+                                msgs.push(`${key}: ${value[0]}`);
+                            } else if (typeof value === 'object' && value !== null) {
+                                msgs.push(...parseErrors(value));
+                            } else {
+                                msgs.push(`${key}: ${JSON.stringify(value)}`);
+                            }
+                        }
+                        return msgs;
+                    };
+                    const errorMessages = parseErrors(data);
                     if (errorMessages.length > 0) {
                         message = errorMessages.join(' | ');
                     }
