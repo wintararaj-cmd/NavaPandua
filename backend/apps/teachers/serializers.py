@@ -67,6 +67,14 @@ class TeacherSerializer(serializers.ModelSerializer):
         user_create_data = {k: v for k, v in user_data.items() if k in valid_user_fields}
         
         try:
+            # Ensure media directories exist
+            import os
+            from django.conf import settings
+            for sub_dir in ['profile_pictures', 'schools/logos', 'schools/gallery']:
+                full_path = os.path.join(settings.MEDIA_ROOT, sub_dir)
+                if not os.path.exists(full_path):
+                    os.makedirs(full_path, exist_ok=True)
+
             with transaction.atomic():
                 # Create User
                 user = User.objects.create_user(password=password, **user_create_data)
