@@ -83,12 +83,30 @@ export default function Teachers() {
             fetchTeachers();
         } catch (error: any) {
             console.error('Error saving staff:', error);
-            const message = error.response?.data?.detail ||
-                error.response?.data?.message ||
-                Object.values(error.response?.data || {})[0] ||
-                'Failed to save staff member';
-            toast.error(typeof message === 'string' ? message : 'Failed to save staff member');
+            const data = error.response?.data;
+            let message = 'Failed to save staff member';
+            
+            if (data) {
+                if (typeof data === 'string') {
+                    message = data;
+                } else if (data.detail) {
+                    message = data.detail;
+                } else if (data.message) {
+                    message = data.message;
+                } else {
+                    // Collect all validation errors
+                    const errorMessages = Object.entries(data).map(([key, value]) => {
+                        const val = Array.isArray(value) ? value[0] : value;
+                        return `${key}: ${val}`;
+                    });
+                    if (errorMessages.length > 0) {
+                        message = errorMessages.join(' | ');
+                    }
+                }
+            }
+            toast.error(message);
         } finally {
+
             setActionLoading(false);
         }
     };

@@ -230,8 +230,13 @@ const TeacherModal: React.FC<TeacherModalProps> = ({
                                             <label className="block text-sm font-medium text-gray-700">Designation</label>
                                             <input type="text" name="designation" value={formData.designation} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
                                         </div>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700">Qualification</label>
+                                            <input type="text" name="qualification" value={formData.qualification} onChange={handleChange} required className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 sm:text-sm" />
+                                        </div>
                                     </div>
                                 </div>
+
 
                                 {/* Salary & Bank Information */}
                                 <div className="col-span-1 md:col-span-2">
