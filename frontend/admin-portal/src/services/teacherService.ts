@@ -62,7 +62,11 @@ export const teacherService = {
         // Use FormData for file uploads
         const formData = new FormData();
         Object.entries(data).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
+            if (key === 'profile_picture') {
+                if (value instanceof File) {
+                    formData.append(key, value);
+                }
+            } else if (value !== undefined && value !== null && value !== '') {
                 formData.append(key, value);
             }
         });
@@ -76,7 +80,11 @@ export const teacherService = {
         // Use FormData for file uploads
         const formData = new FormData();
         Object.entries(data).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
+            if (key === 'profile_picture') {
+                if (value instanceof File) {
+                    formData.append(key, value);
+                }
+            } else if (value !== undefined && value !== null && value !== '') {
                 formData.append(key, value);
             }
         });
@@ -85,6 +93,7 @@ export const teacherService = {
         });
         return response.data;
     },
+
 
 
     delete: async (id: number) => {
