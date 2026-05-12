@@ -394,7 +394,7 @@ export default function Settings() {
                                 </div>
                                 <div className="flex gap-4">
                                     <a 
-                                        href={`http://localhost:5175/school/${publicPage?.school_code}`} 
+                                        href={`${import.meta.env.VITE_LANDING_PAGE_URL || 'http://localhost:5175'}/school/${publicPage?.school_code}`} 
                                         target="_blank" 
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-50 transition-all shadow-sm active:scale-95"
