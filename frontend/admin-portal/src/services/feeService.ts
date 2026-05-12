@@ -79,6 +79,10 @@ export const feeService = {
         const response = await api.post('/fees/masters/', data);
         return response.data;
     },
+    updateFeeMaster: async (id: string, data: Partial<FeeMaster>) => {
+        const response = await api.patch(`/fees/masters/${id}/`, data);
+        return response.data;
+    },
 
     // Allocations
     getAllocations: async (params?: any) => {

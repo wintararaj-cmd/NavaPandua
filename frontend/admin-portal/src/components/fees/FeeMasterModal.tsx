@@ -8,9 +8,10 @@ interface FeeMasterModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    master?: any;
 }
 
-export default function FeeMasterModal({ isOpen, onClose, onSuccess }: FeeMasterModalProps) {
+export default function FeeMasterModal({ isOpen, onClose, onSuccess, master }: FeeMasterModalProps) {
     const [loading, setLoading] = useState(false);
     const [groups, setGroups] = useState<FeeGroup[]>([]);
     const [types, setTypes] = useState<FeeType[]>([]);
@@ -29,8 +30,29 @@ export default function FeeMasterModal({ isOpen, onClose, onSuccess }: FeeMaster
     useEffect(() => {
         if (isOpen) {
             fetchDependencies();
+            if (master) {
+                setFormData({
+                    fee_group: master.fee_group,
+                    fee_type: master.fee_type,
+                    target_class: master.target_class || '',
+                    amount: master.amount,
+                    due_date: master.due_date,
+                    fine_type: master.fine_type,
+                    fine_amount: master.fine_amount
+                });
+            } else {
+                setFormData({
+                    fee_group: '',
+                    fee_type: '',
+                    target_class: '',
+                    amount: '',
+                    due_date: '',
+                    fine_type: 'NONE',
+                    fine_amount: '0'
+                });
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, master]);
 
     const fetchDependencies = async () => {
         try {
@@ -51,26 +73,25 @@ export default function FeeMasterModal({ isOpen, onClose, onSuccess }: FeeMaster
         e.preventDefault();
         try {
             setLoading(true);
-            await feeService.createFeeMaster({
+            const payload = {
                 ...formData,
-                target_class: formData.target_class || undefined,
+                target_class: formData.target_class || null,
                 amount: formData.amount,
                 fine_amount: formData.fine_amount
-            });
-            toast.success('Fee structure created successfully');
+            };
+
+            if (master) {
+                await feeService.updateFeeMaster(master.id, payload);
+                toast.success('Fee structure updated successfully');
+            } else {
+                await feeService.createFeeMaster(payload);
+                toast.success('Fee structure created successfully');
+            }
+            
             onSuccess();
             onClose();
-            setFormData({
-                fee_group: '',
-                fee_type: '',
-                target_class: '',
-                amount: '',
-                due_date: '',
-                fine_type: 'NONE',
-                fine_amount: '0'
-            });
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to create fee structure');
+            toast.error(error.response?.data?.message || 'Failed to save fee structure');
         } finally {
             setLoading(false);
         }
@@ -88,7 +109,7 @@ export default function FeeMasterModal({ isOpen, onClose, onSuccess }: FeeMaster
                 <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                     <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold text-gray-900">Add Fee Structure</h3>
+                            <h3 className="text-xl font-bold text-gray-900">{master ? 'Edit Fee Structure' : 'Add Fee Structure'}</h3>
                             <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
                                 <X className="h-6 w-6" />
                             </button>

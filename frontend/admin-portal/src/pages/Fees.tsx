@@ -16,6 +16,7 @@ export default function Fees() {
 
     // Modal states
     const [showMasterModal, setShowMasterModal] = useState(false);
+    const [selectedMaster, setSelectedMaster] = useState<FeeMaster | null>(null);
     const [showGroupModal, setShowGroupModal] = useState(false);
     const [showTypeModal, setShowTypeModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -462,7 +463,10 @@ export default function Fees() {
                                     <Tag className="h-4 w-4" /> Add Type
                                 </button>
                                 <button
-                                    onClick={() => setShowMasterModal(true)}
+                                    onClick={() => {
+                                        setSelectedMaster(null);
+                                        setShowMasterModal(true);
+                                    }}
                                     className="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700 flex items-center gap-2 font-semibold transition shadow-md"
                                 >
                                     <Plus className="h-4 w-4" /> Add Structure
@@ -475,10 +479,28 @@ export default function Fees() {
                                 <div key={master.id} className="border p-6 rounded-xl bg-white hover:shadow-lg transition-all border-gray-100 relative group overflow-hidden">
                                     <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500 group-hover:bg-indigo-600 transition-colors"></div>
                                     <div className="flex justify-between items-start mb-4">
-                                        <h4 className="font-bold text-gray-900 text-lg leading-tight">{master.fee_type_name}</h4>
-                                        <span className="text-xs font-bold bg-indigo-50 px-2.5 py-1 rounded-full text-indigo-700 uppercase tracking-wider">
-                                            {master.fee_group_name}
-                                        </span>
+                                        <div className="flex-1">
+                                            <h4 className="font-bold text-gray-900 text-lg leading-tight">{master.fee_type_name}</h4>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                                                    {master.fee_group_name}
+                                                </span>
+                                                {master.class_name && (
+                                                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                                                        {master.class_name}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedMaster(master);
+                                                setShowMasterModal(true);
+                                            }}
+                                            className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                        >
+                                            <Settings className="h-4 w-4" />
+                                        </button>
                                     </div>
                                     <div className="flex items-baseline gap-1 mb-6">
                                         <span className="text-3xl font-black text-gray-900">₹{master.amount}</span>
@@ -610,7 +632,11 @@ export default function Fees() {
             {/* Modals */}
             <FeeMasterModal
                 isOpen={showMasterModal}
-                onClose={() => setShowMasterModal(false)}
+                master={selectedMaster}
+                onClose={() => {
+                    setShowMasterModal(false);
+                    setSelectedMaster(null);
+                }}
                 onSuccess={fetchConfigData}
             />
             <FeeGroupModal

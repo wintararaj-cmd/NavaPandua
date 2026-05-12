@@ -17,6 +17,7 @@ class FeeTypeSerializer(serializers.ModelSerializer):
 class FeeMasterSerializer(serializers.ModelSerializer):
     fee_group_name = serializers.ReadOnlyField(source='fee_group.name')
     fee_type_name = serializers.ReadOnlyField(source='fee_type.name')
+    class_name = serializers.ReadOnlyField(source='target_class.name')
 
     class Meta:
         model = FeeMaster
