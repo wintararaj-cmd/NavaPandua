@@ -220,6 +220,8 @@ export default function SchoolModal({ isOpen, onClose, onSave, initialData }: Sc
                                      <option value="STATE">State Board</option>
                                      <option value="IB">IB</option>
                                      <option value="IGCSE">IGCSE</option>
+                                     <option value="WEBEL">Webel Affiliation</option>
+                                     <option value="OTHER_AFFILIATION">Other Affiliation</option>
                                  </select>
                              </div>
                         </div>

@@ -142,6 +142,13 @@ class AdmissionApplication(BaseModel):
     second_language = models.CharField(max_length=50, blank=True)
     third_language = models.CharField(max_length=50, blank=True)
     
+    # Franchise / Course specifics
+    course_fee = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    scholarship_discount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    admission_payment_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    course_duration_months = models.IntegerField(null=True, blank=True)
+    monthly_installment = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    
     # Academic Performance JSON
     academic_performance = models.TextField(blank=True) 
     

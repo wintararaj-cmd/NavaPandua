@@ -14,17 +14,39 @@ interface Props {
 export default function ApplicationModal({ isOpen, onClose, onSave, initialData }: Props) {
   const [classes, setClasses] = useState<Class[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'student' | 'family' | 'academic' | 'status'>('student');
+  const [activeTab, setActiveTab] = useState<'student' | 'family' | 'academic' | 'fees' | 'status'>('student');
   
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
     defaultValues: initialData || {
       status: 'SUBMITTED',
       gender: 'MALE',
       application_fee_paid: false,
       nationality: 'Indian',
-      caste: 'GENERAL'
+      caste: 'GENERAL',
+      course_fee: 0,
+      scholarship_discount: 0,
+      admission_payment_amount: 0,
+      course_duration_months: 1,
+      monthly_installment: 0
     }
   });
+
+  // Auto-calculate monthly installment
+  const courseFee = watch('course_fee') || 0;
+  const scholarshipDiscount = watch('scholarship_discount') || 0;
+  const admissionPaymentAmount = watch('admission_payment_amount') || 0;
+  const courseDurationMonths = watch('course_duration_months') || 1;
+
+  useEffect(() => {
+    const netFee = Number(courseFee) - Number(scholarshipDiscount);
+    const balance = netFee - Number(admissionPaymentAmount);
+    const duration = Number(courseDurationMonths);
+    if (duration > 0 && balance > 0) {
+      setValue('monthly_installment', parseFloat((balance / duration).toFixed(2)));
+    } else {
+      setValue('monthly_installment', 0);
+    }
+  }, [courseFee, scholarshipDiscount, admissionPaymentAmount, courseDurationMonths, setValue]);
 
   useEffect(() => {
     if (isOpen) {
@@ -46,7 +68,12 @@ export default function ApplicationModal({ isOpen, onClose, onSave, initialData 
           gender: 'MALE',
           application_fee_paid: false,
           nationality: 'Indian',
-          caste: 'GENERAL'
+          caste: 'GENERAL',
+          course_fee: 0,
+          scholarship_discount: 0,
+          admission_payment_amount: 0,
+          course_duration_months: 1,
+          monthly_installment: 0
         });
       }
     }
@@ -140,7 +167,7 @@ export default function ApplicationModal({ isOpen, onClose, onSave, initialData 
           </div>
 
           <div className="flex border-b border-gray-200 bg-gray-50 px-6 pt-2 space-x-4">
-            {['student', 'family', 'academic', 'status'].map((tab) => (
+            {['student', 'family', 'academic', 'fees', 'status'].map((tab) => (
                 <button
                   key={tab}
                   type="button"
@@ -370,7 +397,7 @@ export default function ApplicationModal({ isOpen, onClose, onSave, initialData 
                   <input type="text" {...register('previous_school_name')} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Previous School Board</label>
+                  <label className="block text-sm font-medium text-gray-700">Previous School Board / Affiliation</label>
                   <input type="text" {...register('previous_school_board')} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
                 </div>
                 <div>
@@ -380,6 +407,32 @@ export default function ApplicationModal({ isOpen, onClose, onSave, initialData 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700">Previous School Address</label>
                   <textarea {...register('previous_school_address')} rows={2} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div className={activeTab === 'fees' ? '' : 'hidden'}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Course Fee</label>
+                  <input type="number" {...register('course_fee')} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g. 10000" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Scholarship / Discount</label>
+                  <input type="number" {...register('scholarship_discount')} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g. 2000" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Admission Payment Amount</label>
+                  <input type="number" {...register('admission_payment_amount')} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Amount paid during admission" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Course Duration (Months)</label>
+                  <input type="number" {...register('course_duration_months')} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g. 6" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">Calculated Monthly Installment</label>
+                  <input type="number" step="0.01" {...register('monthly_installment')} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 sm:text-sm" readOnly />
+                  <p className="mt-1 text-xs text-gray-500">Auto-calculated: (Course Fee - Scholarship - Admission Payment) / Duration</p>
                 </div>
               </div>
             </div>

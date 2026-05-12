@@ -107,7 +107,14 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
         photo: '',
         father_photo: '',
         mother_photo: '',
-        siblings: []
+        siblings: [],
+        
+        // Fee Workflow Fields
+        course_fee: 0,
+        scholarship_discount: 0,
+        admission_payment_amount: 0,
+        course_duration_months: 1,
+        monthly_installment: 0
     });
  
     const [files, setFiles] = useState<{ [key: string]: File | null }>({
@@ -120,7 +127,7 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
     const [schools, setSchools] = useState<School[]>([]);
     const [classes, setClasses] = useState<Class[]>([]);
     const [sections, setSections] = useState<Section[]>([]);
-    const [activeTab, setActiveTab] = useState<'basic' | 'student' | 'family' | 'academic' | 'other' | 'address'>('basic');
+    const [activeTab, setActiveTab] = useState<'basic' | 'student' | 'family' | 'academic' | 'fees' | 'other' | 'address'>('basic');
 
     useEffect(() => {
         if (isOpen) {
@@ -184,7 +191,12 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
             gender: student.gender || 'MALE',
             admission_date: student.admission_date || new Date().toISOString().split('T')[0],
             status: student.status || 'ACTIVE',
-            siblings: student.siblings || []
+            siblings: student.siblings || [],
+            course_fee: student.course_fee || 0,
+            scholarship_discount: student.scholarship_discount || 0,
+            admission_payment_amount: student.admission_payment_amount || 0,
+            course_duration_months: student.course_duration_months || 1,
+            monthly_installment: student.monthly_installment || 0
         });
     };
 
@@ -263,7 +275,12 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
             house: '',
             transport_type: '',
             fee_payment_mode: '',
-            siblings: []
+            siblings: [],
+            course_fee: 0,
+            scholarship_discount: 0,
+            admission_payment_amount: 0,
+            course_duration_months: 1,
+            monthly_installment: 0
         });
     };
 
@@ -301,11 +318,27 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
-                    type === 'number' ? parseFloat(value) : value
-        }));
+        setFormData(prev => {
+            const updated = {
+                ...prev,
+                [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : 
+                        type === 'number' ? parseFloat(value) : value
+            };
+            
+            // Auto-calculate monthly installment if fee fields are updated
+            if (['course_fee', 'scholarship_discount', 'admission_payment_amount', 'course_duration_months'].includes(name)) {
+                const netFee = Number(updated.course_fee) - Number(updated.scholarship_discount);
+                const balance = netFee - Number(updated.admission_payment_amount);
+                const duration = Number(updated.course_duration_months);
+                if (duration > 0 && balance > 0) {
+                    updated.monthly_installment = parseFloat((balance / duration).toFixed(2));
+                } else {
+                    updated.monthly_installment = 0;
+                }
+            }
+            
+            return updated;
+        });
     };
 
     const handleSiblingChange = (index: number, field: keyof StudentSibling, value: string) => {
@@ -334,6 +367,7 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
         { id: 'student', label: 'Student', icon: User },
         { id: 'family', label: 'Family', icon: Shield },
         { id: 'academic', label: 'Academic History', icon: BookOpen },
+        { id: 'fees', label: 'Fee Plan', icon: FileText },
         { id: 'other', label: 'Additional', icon: Heart },
         { id: 'address', label: 'Address', icon: MapPin },
     ];
@@ -672,6 +706,36 @@ export default function StudentModal({ isOpen, onClose, onSubmit, student, isLoa
                                     <input type="text" name="previous_school_city" placeholder="City" value={formData.previous_school_city} onChange={handleChange} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
                                     <input type="text" name="previous_school_state" placeholder="State" value={formData.previous_school_state} onChange={handleChange} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
                                     <input type="text" name="previous_school_pincode" placeholder="PIN" value={formData.previous_school_pincode} onChange={handleChange} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Fees Tab */}
+                    {activeTab === 'fees' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 space-y-8">
+                            <h4 className="text-xs font-black text-indigo-600 uppercase tracking-[0.2em]">Course Fee & Installment Plan</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Total Course Fee</label>
+                                    <input type="number" name="course_fee" value={formData.course_fee} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" placeholder="e.g. 10000" />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Scholarship / Discount</label>
+                                    <input type="number" name="scholarship_discount" value={formData.scholarship_discount} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" placeholder="e.g. 2000" />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Admission Payment Amount</label>
+                                    <input type="number" name="admission_payment_amount" value={formData.admission_payment_amount} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" placeholder="Amount paid initially" />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Course Duration (Months)</label>
+                                    <input type="number" name="course_duration_months" value={formData.course_duration_months} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none" placeholder="e.g. 6" />
+                                </div>
+                                <div className="col-span-full">
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Calculated Monthly Installment</label>
+                                    <input type="number" step="0.01" name="monthly_installment" value={formData.monthly_installment} readOnly className="w-full px-4 py-3 bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold rounded-2xl outline-none" />
+                                    <p className="mt-2 text-[10px] font-bold text-gray-400">Formula: (Course Fee - Discount - Admission Payment) / Course Duration</p>
                                 </div>
                             </div>
                         </div>

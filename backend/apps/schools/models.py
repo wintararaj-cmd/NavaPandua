@@ -67,6 +67,8 @@ class School(BaseModel, ContactInfo):
             ('STATE', 'State Board'),
             ('IB', 'International Baccalaureate'),
             ('IGCSE', 'IGCSE'),
+            ('WEBEL', 'Webel Affiliation'),
+            ('OTHER_AFFILIATION', 'Other Affiliation'),
         ],
         blank=True
     )

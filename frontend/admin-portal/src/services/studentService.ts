@@ -91,6 +91,13 @@ export interface Student {
     father_photo?: string;
     mother_photo?: string;
     
+    // Fee Workflow Fields
+    course_fee?: number;
+    scholarship_discount?: number;
+    admission_payment_amount?: number;
+    course_duration_months?: number;
+    monthly_installment?: number;
+    
     class_details?: {
         id: string;
         name: string;
