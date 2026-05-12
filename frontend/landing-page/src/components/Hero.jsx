@@ -15,24 +15,21 @@ const Hero = () => {
             transition={{ duration: 0.8 }}
           >
             <h1>
-              Ensuring{' '}
-              <span className="script">happy</span>
+              Nabodaya <span className="script">Educational</span>
               <br />
-              <span className="highlight">childhoods</span>
-              <br />
-              for all children.
+              <span className="highlight">Trust</span>
             </h1>
             <p className="hero-text">
-              Nabodaya Education Trust works to create a world where every child 
-              has the opportunity to learn, grow, and thrive — regardless of 
-              their background or geography.
+              Nabodaya Educational Trust is a dedicated educational and social welfare organization 
+              working for education, skill development, women empowerment, digital literacy, and community welfare.
+              We are committed to creating opportunities through knowledge, training, and social support.
             </p>
             <div className="hero-buttons">
-              <a href="#donate" className="btn btn-yellow" style={{ padding: '16px 40px', fontSize: '1rem' }}>
-                <Heart size={18} /> Yes! I Want To Help
+              <a href="#focus" className="btn btn-yellow" style={{ padding: '16px 40px', fontSize: '1rem' }}>
+                Our Activities
               </a>
-              <a href="#focus" className="btn btn-outline-dark" style={{ padding: '16px 32px', fontSize: '1rem' }}>
-                Learn More
+              <a href="#messages" className="btn btn-outline-dark" style={{ padding: '16px 32px', fontSize: '1rem' }}>
+                Leadership Message
               </a>
             </div>
           </motion.div>

@@ -5,19 +5,28 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
+from apps.accounts.models import User
+from apps.teachers.models import Teacher
+from apps.schools.models import School
 from apps.teachers.serializers import TeacherSerializer
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import QueryDict
 
-# Create dummy request data
+try:
+    school = School.objects.create(name='Test School')
+    user = User.objects.create_user(username='teacher1', email='teacher1@gmail.com', password='test')
+    # Create a teacher with empty employee_id
+    Teacher.objects.create(user=user, school=school, employee_id='', department='Math', designation='T', qualification='BA', joining_date='2026-05-11')
+except Exception as e:
+    print(f"Setup error: {e}")
+
 data = {
     'first_name': 'Sheikh',
     'last_name': 'Kajol',
     'gender': 'MALE',
     'role': 'TEACHER',
-    'email': 'test.script@gmail.com',
+    'email': 'new.teacher@gmail.com', # unique email
     'phone': '7864046170',
-    'employee_id': '',
+    'employee_id': '', # The empty string again
     'department': 'English',
     'designation': 'teacher',
     'qualification': 'MA',
@@ -27,11 +36,9 @@ data = {
     'bank_account_no': ''
 }
 
-# Create a QueryDict
 qd = QueryDict(mutable=True)
 qd.update(data)
 
-# Pass to serializer
 serializer = TeacherSerializer(data=qd)
 is_valid = serializer.is_valid()
 
@@ -40,4 +47,3 @@ if not is_valid:
     print(serializer.errors)
 else:
     print("VALIDATION PASSED!")
-    print(serializer.validated_data)

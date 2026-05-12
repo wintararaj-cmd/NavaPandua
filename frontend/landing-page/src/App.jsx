@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import FocusAreas from './components/FocusAreas';
 import Impact from './components/Impact';
+import Messages from './components/Messages';
 import Footer from './components/Footer';
 import AdmissionForm from './components/AdmissionForm';
 import SchoolPage from './pages/SchoolPage';
@@ -16,6 +17,7 @@ function LandingPage() {
       <Hero />
       <FocusAreas />
       <Impact />
+      <Messages />
       
       {/* Call to Action Section */}
       <section className="cta-section">

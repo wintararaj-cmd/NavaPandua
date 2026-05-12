@@ -20,8 +20,12 @@ const Impact = () => {
               OUR <span className="text-accent" style={{ color: 'var(--white)', textTransform: 'lowercase' }}>impact</span>
             </span>
             <h2 className="section-title" style={{ fontSize: '3.2rem' }}>
-              Transforming Lives <br/>Since 1979
+              Creating Positive <br/>Social Change
             </h2>
+            <p className="section-desc" style={{ color: 'var(--secondary)', marginTop: '1rem', fontWeight: '500' }}>
+              Nabodaya Educational Trust is continuously working to create positive social change 
+              through education, skill development, digital literacy, and community support.
+            </p>
           </div>
 
           <div className="impact-grid">
@@ -72,24 +76,21 @@ const Impact = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
             >
-              <span className="story-label">Success Story</span>
-              <h3>Giving wings to dreams: <br/>Meet Geeta</h3>
+              <span className="story-label">Our Vision</span>
+              <h3>Empowering Communities <br/>Through Knowledge</h3>
               <p>
-                Geeta comes from a remote village where girls rarely study past middle school. 
-                When her family faced financial hardships, she was forced to drop out and work 
-                in the fields to support them.
+                Through our initiatives, we aim to empower students, women, youth, and underprivileged communities 
+                by providing opportunities for learning, awareness, and self-reliance.
               </p>
               <blockquote>
-                "I always wanted to study and become a teacher, but my circumstances forced me 
-                to put my dreams on hold."
+                "Our impact reflects our commitment to building a more educated, skilled, and empowered society."
               </blockquote>
               <p>
-                Through Nabodaya's intervention and counseling, Geeta was re-enrolled in school. 
-                Today, she is not only completing her high school education but also tutoring 
-                younger children in her community.
+                Every day, we witness the transformation of lives as individuals gain the skills 
+                and confidence to build a better future for themselves and their families.
               </p>
-              <a href="#all-stories" className="btn btn-yellow" style={{ marginTop: '1.5rem' }}>
-                Read More Stories <ArrowRight size={18} />
+              <a href="#focus" className="btn btn-yellow" style={{ marginTop: '1.5rem' }}>
+                See Our Work <ArrowRight size={18} />
               </a>
             </motion.div>
           </div>

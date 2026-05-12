@@ -34,17 +34,16 @@ const Navbar = () => {
             </Link>
             <div className="brand-text">
               <span className="name">Nabodaya</span>
-              <span className="tagline">Education Trust</span>
+              <span className="tagline">Educational Trust</span>
             </div>
           </div>
 
           {/* Nav Links */}
           <div className="nav-links">
             <Link to="hero" smooth={true} duration={500} className="nav-link">Home</Link>
-            <Link to="about" smooth={true} duration={500} className="nav-link">Who We Are</Link>
-            <Link to="focus" smooth={true} duration={500} className="nav-link">What We Do</Link>
-            <Link to="impact" smooth={true} duration={500} className="nav-link">Our Impact</Link>
-            <Link to="stories" smooth={true} duration={500} className="nav-link">Stories</Link>
+            <Link to="focus" smooth={true} duration={500} className="nav-link">Activities</Link>
+            <Link to="impact" smooth={true} duration={500} className="nav-link">Impact</Link>
+            <Link to="messages" smooth={true} duration={500} className="nav-link">Messages</Link>
           </div>
 
           {/* CTA Buttons */}

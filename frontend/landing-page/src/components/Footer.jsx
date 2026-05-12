@@ -14,13 +14,12 @@ const Footer = () => {
               </div>
               <div className="footer-brand-text">
                 <div className="footer-name">NABODAYA</div>
-                <div className="footer-tagline">Education Trust</div>
+                <div className="footer-tagline">Educational Trust</div>
               </div>
             </div>
             <p className="footer-desc">
-              Nabodaya Education Trust is an Indian NGO working to ensure happier 
-              childhoods for all children by giving them access to education, 
-              proper healthcare, and protection from exploitation.
+              Nabodaya Educational Trust is a dedicated educational and social welfare organization 
+              working for education, skill development, women empowerment, digital literacy, and community welfare.
             </p>
             <div className="footer-social">
               <a href="#" className="footer-social-icon"><Facebook /></a>
@@ -33,13 +32,13 @@ const Footer = () => {
 
           {/* Our Work */}
           <div className="footer-col">
-            <h4>What We Do</h4>
+            <h4>Our Activities</h4>
             <ul>
-              <li><a href="#">Education</a></li>
-              <li><a href="#">Health & Nutrition</a></li>
-              <li><a href="#">Child Protection</a></li>
-              <li><a href="#">Child Participation</a></li>
-              <li><a href="#">Our Reach</a></li>
+              <li><a href="#focus">Educational Support</a></li>
+              <li><a href="#focus">Digital Literacy</a></li>
+              <li><a href="#focus">Skill Development</a></li>
+              <li><a href="#focus">Women Empowerment</a></li>
+              <li><a href="#focus">Community Welfare</a></li>
             </ul>
           </div>
 
