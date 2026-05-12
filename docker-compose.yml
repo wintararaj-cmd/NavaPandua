@@ -31,7 +31,9 @@ services:
   backend:
     build: ./backend
     container_name: school_backend
-    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    command: >
+      sh -c "python manage.py migrate && 
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"
     environment:
       - PYTHONPATH=/app
       - DATABASE_URL=postgresql://school_user:school123@postgres:5432/school_mgmt_db
