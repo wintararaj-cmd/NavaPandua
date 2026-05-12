@@ -147,13 +147,17 @@ class PublicAdmissionView(APIView):
 
     def get(self, request):
         # Return schools and classes for the dropdowns
+        from apps.schools.models import SchoolSettings
         schools = School.objects.filter(is_active=True, is_deleted=False)
         school_data = []
         for school in schools:
+            settings = SchoolSettings.objects.filter(school=school).first()
             classes = Class.objects.filter(school=school, is_deleted=False)
             school_data.append({
                 'id': school.id,
                 'name': school.name,
-                'classes': [{'id': c.id, 'name': c.name} for c in classes]
+                'age_cutoff_month': settings.age_cutoff_month if settings else 4,
+                'age_cutoff_day': settings.age_cutoff_day if settings else 1,
+                'classes': [{'id': c.id, 'name': c.name, 'min_age': c.min_age, 'max_age': c.max_age} for c in classes]
             })
         return Response({'success': True, 'data': school_data})

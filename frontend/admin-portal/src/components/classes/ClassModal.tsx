@@ -28,6 +28,8 @@ export default function ClassModal({ isOpen, onClose, onSubmit, classData, isLoa
         class_type: 'CLASS',
         duration_weeks: null,
         course_fee: null,
+        min_age: null,
+        max_age: null,
     });
 
     const [schools, setSchools] = useState<School[]>([]);
@@ -44,6 +46,8 @@ export default function ClassModal({ isOpen, onClose, onSubmit, classData, isLoa
                     class_type: classData.class_type || 'CLASS',
                     duration_weeks: classData.duration_weeks || null,
                     course_fee: classData.course_fee || null,
+                    min_age: classData.min_age || null,
+                    max_age: classData.max_age || null,
                 });
             } else {
                 const defaultType = (window as any).__defaultClassType || terms.defaultClassType;
@@ -55,6 +59,8 @@ export default function ClassModal({ isOpen, onClose, onSubmit, classData, isLoa
                     class_type: defaultType,
                     duration_weeks: null,
                     course_fee: null,
+                    min_age: null,
+                    max_age: null,
                 });
             }
         }
@@ -229,6 +235,42 @@ export default function ClassModal({ isOpen, onClose, onSubmit, classData, isLoa
                             placeholder="Optional summary..."
                             className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
                         />
+                    </div>
+
+                    <div className="pt-2 border-t border-gray-100">
+                        <label className="block text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3">
+                            Admission Age Criteria (Optional)
+                        </label>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">
+                                    Min Age (Years)
+                                </label>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    name="min_age"
+                                    value={formData.min_age || ''}
+                                    onChange={handleChange}
+                                    placeholder="e.g. 2.5"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">
+                                    Max Age (Years)
+                                </label>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    name="max_age"
+                                    value={formData.max_age || ''}
+                                    onChange={handleChange}
+                                    placeholder="e.g. 5"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     <div className="flex gap-3 pt-4">

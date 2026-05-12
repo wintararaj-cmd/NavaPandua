@@ -30,6 +30,8 @@ export interface Class {
     class_type: 'CLASS' | 'COURSE';
     duration_weeks?: number | null;
     course_fee?: number | null;
+    min_age?: number | null;
+    max_age?: number | null;
     sections?: Section[];
     created_at?: string;
     updated_at?: string;
@@ -43,6 +45,8 @@ export interface ClassFormData {
     class_type?: 'CLASS' | 'COURSE';
     duration_weeks?: number | null;
     course_fee?: number | null;
+    min_age?: number | null;
+    max_age?: number | null;
 }
 
 export interface SectionFormData {

@@ -784,6 +784,38 @@ export default function Settings() {
                                     </select>
                                 </div>
                             </div>
+
+                            <div className="border-t border-gray-100 pt-8">
+                                <h2 className="text-xl font-bold text-gray-900 mb-4">Admission Age Cutoff</h2>
+                                <p className="text-sm text-gray-500 mb-6">Define the base date used to calculate student age during admission.</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Cutoff Month</label>
+                                        <select 
+                                            value={settings?.age_cutoff_month || 4} 
+                                            onChange={(e) => setSettings(prev => prev ? {...prev, age_cutoff_month: parseInt(e.target.value)} : null)}
+                                            className="w-full rounded-xl border-gray-300 py-2.5 px-4 focus:ring-2 focus:ring-indigo-500 shadow-sm font-bold text-indigo-600"
+                                        >
+                                            {Array.from({length: 12}, (_, i) => (
+                                                <option key={i+1} value={i+1}>
+                                                    {new Date(2000, i, 1).toLocaleString('default', { month: 'long' })}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Cutoff Day</label>
+                                        <input 
+                                            type="number" 
+                                            min="1" 
+                                            max="31"
+                                            value={settings?.age_cutoff_day || 1} 
+                                            onChange={(e) => setSettings(prev => prev ? {...prev, age_cutoff_day: parseInt(e.target.value)} : null)}
+                                            className="w-full rounded-xl border-gray-300 py-2.5 px-4 focus:ring-2 focus:ring-indigo-500 shadow-sm font-bold" 
+                                        />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
 

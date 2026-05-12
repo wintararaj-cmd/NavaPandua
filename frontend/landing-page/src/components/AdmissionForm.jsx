@@ -125,7 +125,45 @@ const AdmissionForm = () => {
         }
     };
 
-    const handleNext = () => setStep(step + 1);
+    const handleNext = () => {
+        if (step === 2) {
+            const classObj = selectedSchool?.classes.find(c => c.id === formData.target_class);
+            if (formData.date_of_birth && classObj) {
+                const dob = new Date(formData.date_of_birth);
+                
+                // Get cutoff settings from selectedSchool
+                const cutoffMonth = selectedSchool.age_cutoff_month || 4;
+                const cutoffDay = selectedSchool.age_cutoff_day || 1;
+                
+                // Determine target year
+                const now = new Date();
+                let targetYear = now.getFullYear();
+                if (now.getMonth() + 1 > cutoffMonth || (now.getMonth() + 1 === cutoffMonth && now.getDate() >= cutoffDay)) {
+                    targetYear++;
+                }
+                
+                const targetDate = new Date(targetYear, cutoffMonth - 1, cutoffDay);
+                
+                // Calculate age
+                let age = targetDate.getFullYear() - dob.getFullYear();
+                const m = targetDate.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && targetDate.getDate() < dob.getDate())) {
+                    age--;
+                }
+
+                if (classObj.min_age !== null && age < parseFloat(classObj.min_age)) {
+                    toast.error(`Age must be at least ${classObj.min_age} years as on ${targetDate.toLocaleDateString()} for ${classObj.name}.`);
+                    return;
+                }
+                
+                if (classObj.max_age !== null && age > parseFloat(classObj.max_age)) {
+                    toast.error(`Age must not exceed ${classObj.max_age} years as on ${targetDate.toLocaleDateString()} for ${classObj.name}.`);
+                    return;
+                }
+            }
+        }
+        setStep(step + 1);
+    };
     const handlePrev = () => setStep(step - 1);
 
     const handleSubmit = async (e) => {

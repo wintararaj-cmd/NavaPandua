@@ -8,6 +8,10 @@ export interface SchoolSettings {
     teacher_id_prefix: string;
     id_number_length: number;
     
+    // Age Criteria Settings
+    age_cutoff_month: number;
+    age_cutoff_day: number;
+    
     // SMS/Communication Settings
     enable_sms: boolean;
     sms_api_key?: string;

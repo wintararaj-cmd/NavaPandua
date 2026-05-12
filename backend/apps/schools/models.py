@@ -144,6 +144,10 @@ class SchoolSettings(BaseModel):
     academic_year_end_month = models.IntegerField(default=3)  # March
     terms_per_year = models.IntegerField(default=2)
     working_days_per_week = models.IntegerField(default=6)
+
+    # Age Criteria Settings
+    age_cutoff_month = models.IntegerField(default=4, help_text='Month for age calculation (1-12)')
+    age_cutoff_day = models.IntegerField(default=1, help_text='Day for age calculation (1-31)')
     
     # Time Settings
     school_start_time = models.TimeField(null=True, blank=True)

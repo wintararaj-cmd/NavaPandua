@@ -33,6 +33,18 @@ class Class(BaseModel):
         null=True, blank=True,
         help_text='Base course fee (for courses only)'
     )
+
+    # Age Criteria for admission
+    min_age = models.DecimalField(
+        max_digits=4, decimal_places=1,
+        null=True, blank=True,
+        help_text='Minimum age required for admission (in years)'
+    )
+    max_age = models.DecimalField(
+        max_digits=4, decimal_places=1,
+        null=True, blank=True,
+        help_text='Maximum age allowed for admission (in years)'
+    )
     
     class Meta:
         db_table = 'classes'
